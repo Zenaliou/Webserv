@@ -1,12 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <memory>
-#include <locale>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include "../Librairy.hpp"
 
 class ServerSocket // almost finished ?
 {
