@@ -24,12 +24,12 @@ class ServerSocket // almost finished ?
 			addr.sin_port = htons(port); // htons() = converts port to network byte order
 			addr.sin_addr.s_addr = INADDR_ANY; // INADDR_ANY = accept connection on any IP
 
-			if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0); // bind fd to address
+			if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) // bind fd to address
 			{
 				close(fd);
 				throw std::runtime_error("Failed to bind socket");
 			}
-			if (listen(fd, SOMAXCONN) < 0); // listen incoming connections
+			if (listen(fd, SOMAXCONN) < 0) // listen incoming connections
 			{
 				close(fd);
 				throw std::runtime_error("Failed to listen socket");
