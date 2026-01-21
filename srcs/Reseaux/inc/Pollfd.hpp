@@ -3,7 +3,7 @@
 
 #include "../Librairy.hpp"
 
-class Pollfd
+class Pollfd : public pollfd
 {
 	public:
 		int		fd;

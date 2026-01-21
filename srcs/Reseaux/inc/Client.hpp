@@ -12,6 +12,9 @@ class Client // not finished yet
 		size_t		offset;
 
 		Client(int fd) : fd (fd), offset(0) {} ;
+		
+		void acceptClient();
+		void handleClient();
 };
 
 #endif
