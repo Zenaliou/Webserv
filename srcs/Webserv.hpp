@@ -9,6 +9,7 @@
 class Webserv
 {
 	int fd;
+	
 
 	public:
 	// ServerSocket server;
@@ -42,6 +43,7 @@ class Webserv
 
 		void run();
 		int getFd() const { return fd; }
+		void acceptClient();
 
 };
 
