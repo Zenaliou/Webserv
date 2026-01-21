@@ -2,8 +2,9 @@
 #define CLIENT_HPP
 
 #include "../Librairy.hpp"
+#include "../inc/Server.hpp"
 
-class Client // not finished yet
+class Client : public Webserv // not finished yet
 {
 	public:
 		int 		fd;

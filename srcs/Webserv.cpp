@@ -12,7 +12,7 @@ void Webserv::run()
 				continue;
 			int fd = pollfds[i].fd;
 
-			if (fd == server.getFd())
+			if (fd == getFd())
 				acceptClient();
 			else
 				handleClient();
