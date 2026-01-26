@@ -1,5 +1,5 @@
 CC      = c++
-CFLAGS  = -Wall -Werror -Wextra -std=c++98 -Iincludes -g3
+CFLAGS  = -Wall -Werror -Wextra -std=c++98 -Isrcs -g3
 
 SRC_DIR     = srcs/
 OBJ_DIR     = obj/
@@ -30,7 +30,7 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 	@echo "$(BLUE)📁 Dossier obj créé.$(NC)"
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 

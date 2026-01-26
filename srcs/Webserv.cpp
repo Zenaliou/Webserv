@@ -1,21 +1,10 @@
 #include "Webserv.hpp"
 
-void Webserv::run()
+void Webserv::setNonBlocking(int fd)
 {
-	while (true)
-	{
-		poll(&pollfds[0], pollfds.size(), -1);
-
-		for (size_t i = 0; i < pollfds.size(); i++)
-		{
-			if (pollfds[i].revents == 0)
-				continue;
-			int fd = pollfds[i].fd;
-
-			if (fd == getFd())
-				acceptClient();
-			else
-				handleClient();
-		}
-	}
+	int flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		throw std::runtime_error("fcntl F_GETFL failed");
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		throw std::runtime_error("fcntl F_SETFL failed");
 }

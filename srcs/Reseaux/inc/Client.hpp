@@ -1,10 +1,9 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include "../Librairy.hpp"
-#include "../Webserv.hpp"
+#include "Librairy.hpp"
 
-class Client : public Webserv // not finished yet
+class Client
 {
 	public:
 		int 		fd;
@@ -13,9 +12,10 @@ class Client : public Webserv // not finished yet
 		size_t		offset;
 
 		Client(int fd) : fd (fd), offset(0) {} ;
+		~Client() { closeConnection(); }
 		
-		void acceptClient();
-		void handleClient();
+		int handleClient();
+		void closeConnection();
 };
 
 #endif
