@@ -1,0 +1,226 @@
+#include "../Parsing/HttpRequest.hpp"
+
+//exemple a quoi ressemble une requete
+//arrive par recv() en plusieurs morceaux par flux
+//donc faut attendre de tt recevoir
+//et le morceau peut meme depasser sur la prochaine requete
+
+//HttpRequest req;
+
+//req.method        // "GET"
+//req.uri           // "/index.html"
+//req.version       // "HTTP/1.1"
+//req.headers["Host"] = "localhost"
+//req.body          // "hello=world"
+
+//recv() → buffer
+//  ↓
+//headers complets ?
+//  ↓
+//parser headers
+//  ↓
+//body requis ?
+//  ↓
+//body complet ?
+//  ↓
+//COMPLETE
+
+//le header peut etre en minuscule ou en majuscule, ecriture non normaliser
+//donc on va tout mettre en minuscule comme ca plus simple pour les recherches
+
+//Request-Line\r\n
+//Header-1\r\n
+//Header-2\r\n
+//...
+//Header-N\r\n
+//\r\n
+//Body (optionnel)
+
+const std::string &HttpRequest::getMethod() const{
+	return (_method);
+}
+const std::string &HttpRequest::getUri() const{
+	return (_uri);
+}
+const std::string &HttpRequest::getHttpVersion() const{
+	return (_httpVersion);
+}
+const std::string &HttpRequest::getBody() const{
+	return (_body);
+}
+
+std::string HttpRequest::getHeaderValue(const std::string& name) const{
+	std::map<std::string, std::string>::const_iterator it = _headers.find(name);
+	if (it != _headers.end())
+		return it->second;
+	return "";
+}
+
+std::string HttpRequest::toLower(const std::string &str)const{
+	std::string lowerStr = str;
+	for (size_t i = 0; i < lowerStr.size(); i++)
+	{
+		lowerStr[i] = std::tolower(static_cast<unsigned char>(str[i]));//cast juste au cas ou c des caracteres accentuees
+	}
+	return lowerStr;
+}
+void HttpRequest::addHeader(std::string key, std::string value){
+	toLower(key);
+	trim(value);
+	_headers[key] = value;
+}
+
+size_t HttpRequest::getContentLength() const{
+	std::string contentLength = getHeaderValue("content-length");
+	if (contentLength.empty())
+		return 0;
+	for (size_t i = 0; i < contentLength.size(); i++)
+	{
+		if (!std::isdigit(contentLength[i]))
+			return 0;
+	}
+	std::istringstream iss(contentLength);
+	size_t length = 0;
+	iss >> length;
+	return length;
+}
+
+bool HttpRequest::parseRequest(const std::string &data){
+	if (_requestComplete)
+		return true;
+	size_t headerEnd = data.find("\r\n\r\n");
+	if (headerEnd == std::string::npos)//npos = si on a rien trouver avec find et donc le header n'est pas complet
+		return false;
+	std::string headerPart = data.substr(0, headerEnd);
+	
+	//on traite seulement la partie header
+	std::istringstream stream(headerPart);
+	std::string line;
+	if (!std::getline(stream, line))
+	{
+		return false;
+	}
+	//chaque ligne du header se termine par "\r\n"
+	//et getline va stocker dans line chaque ligne de stream jusqu'a "\n"
+	//donc on va supprimer le "\r" qui reste
+	if (!line.empty() && line[line.size() -1] == '\r')
+		line.erase(line.size() -1);
+	//pour la 1ere ligne du header
+	if (!parseRequestLine(line))
+		return false;
+	
+	//pour les autres lignes du header
+	while (std::getline(stream, line))
+	{
+		if (!line.empty() && line[line.size() -1] == '\r')
+			line.erase(line.size() -1);
+		parseHeader(line);
+	}
+
+	//la partie body
+	size_t bodyStart = headerEnd + 4; // + 4 pour "\r\n\r\n"
+
+	if (hasHeader("content-length"))
+	{
+		_expectedBodyLength = getContentLength();
+		if ((bodyStart + _expectedBodyLength) <= data.size())
+		{
+			_body = data.substr(bodyStart, _expectedBodyLength);
+			_requestComplete = true;
+		}
+	}
+	else if (isChunked())
+	{
+		if (parseChunkedBody(data, bodyStart))
+		{
+			_requestComplete = true;
+		}
+		else
+			_requestComplete = false;
+	}
+	else
+	{
+		//cas pas de body
+		_requestComplete = true;
+	}
+	return _requestComplete;
+}
+
+bool HttpRequest::parseRequestLine(const std::string &line){
+	std::istringstream stream(line);
+	if (!(stream >> _method >> _uri >> _httpVersion))
+	{
+		_errorCode = 400; //400 = bad request
+		return false;
+	}
+	
+	//verifie la methode
+	for (size_t i = 0; i < _method.size(); i++)
+		_method[i] = std::toupper(_method[i]);
+	if (_method != "GET" && _method != "POST" && _method != "DELETE")
+	{
+		_errorCode = 405; //405 = method not allowed
+		return false;
+	}
+
+	//verifie l'uri
+	if (_uri.empty() || _uri[0] != '/')
+		_errorCode = 400;
+		return false;
+	
+	//verifie la version http
+	if (_httpVersion != "HTTP/1.1") //je sais pas s'il faut rajouter HTTP/1.0
+	{
+		_errorCode = 505; // 505 = http version not supported
+		return false;
+	}
+	return true;
+}
+
+void HttpRequest::parseHeader(const std::string &line){
+	size_t pos = line.find(':');
+	if (pos == std::string::npos)
+	{
+		return;
+	}
+	std::string name = line.substr(0, pos);
+	std::string value = line.substr(pos + 1); // on saute le ":", pas normer donc peut avoir ensuite plusieurs espaces ou rien
+	size_t startValue = value.find_first_not_of(" \t");
+	if (startValue != std::string::npos)
+	{
+		value = value.substr(startValue);
+	}
+	size_t endValue = value.find_last_not_of(" \n\t\r");
+	if (endValue != std::string::npos)
+	{
+		value = value.substr(0, endValue + 1);
+		//+1 car find_last_not_of renvoie l'index et substr a besoin du nbre de caractere
+		//donc si index 4, nbre de caractere 5
+	}
+
+
+	//stock en minuscule pour faciliter la recherche
+	_headers[toLower(name)] = value;
+}
+
+bool HttpRequest::hasHeader(const std::string &name) const{
+	if (_headers.find(toLower(name)) != _headers.end())
+		return true;
+	else
+		false;
+}
+
+bool HttpRequest::isChunked() const{
+	std::string encoding = getHeaderValue("transfer-encoding");
+	if (encoding.find("chunked") != std::string::npos)
+		return true;
+	return false;
+}
+
+bool HttpRequest::isComplete() const{
+	return _requestComplete;
+}
+
+bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
+	
+}
