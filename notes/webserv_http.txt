@@ -1,0 +1,107 @@
+HTTP -> Hyper Text Transfer Protocol
+	Communication entre les webserv et les clients
+	HTTP Requests / Responses
+	Chaque requete est "stateless" / independant = doit contenir toutes les infos necessaires, ne garde pas en memoire les anciennes requetes.
+		Agit comme si c'etait la premiere requete. Traitee independamment des autres requetes
+HTTPS (Secure) : Data encrypted (SSL/TLS)
+
+- HTTP Methods :
+GET, POST, PUT, DELETE
+PUT = mettre a jour data
+GET: No body
+
+- HTTP Request :
+	URL
+	Method
+	Headers
+	Body
+
+- HTTP Response :
+	Status code
+	Headers
+	Body
+
+- HTTP Header - Body (HTML page/ Request body)
+GET			/tuto/other/machinmachin/	HTTP/1.1		<- Request line
+[method]	[path]						[protocol]
+/**														<- HTTP headers
+Host: code.tutsplus.com
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5 (.NET CLR 3.5.30729)
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Connection: keep-alive
+Cookie: PHPSESSID=r2t5uvjq435r4q7ib3vtdjq120
+Pragma: no-cache
+Cache-Control: no-cache **/
+
+General :
+Request URL
+Request method: GET/POST/...
+Status code
+Remote address: IP of the remote computer
+Referrer policy: info from another page
+...
+
+Response :
+Server: Apache/Nginx (can be hidden)
+Set-cookie: send cookies(pieces of data from serv to client) 
+Content-type: text/html | text/css | image/png | application/json | etc...
+Content-lenght: length in octets
+Date
+...
+
+Request :
+Cookies: resend a cookie received
+Accept-xxx: accept coding / accept character set / accept language / ...
+Content-type
+Content-length
+Authorization: Validate an user to access protected data
+User-agent: string about the software used (OS, browser, ...)
+Referrer: link or whatever
+
+- STATUS CODE
+1xx : Informational (Request received / processing)
+2xx : Success (Successfully received, understood and accepted)
+	200 - OK
+	201 - OK created
+3xx : Redirect (Further action must be taken / redirect)
+	301 - Moved to a new URL
+	304 - Not modified (cached version)
+4xx : Client Error (Request does not have what it needs)
+	400 - Bad request
+	401 - Unauthorized
+	404 - Not found
+5xx : Server Error (Server failed to fulfil an apparent valid request)
+	500 - Internal server error
+		--------------> Dev tools
+
+- HTTP 1.1 (RFC 2616):
+	cache
+	Persisted TCP Connection
+	Lower latency
+	Streaming with chumked transfer (ex: image loading row by row)
+	Pipelining (disabled by default)
+		parallel sending (GET), multiple thread
+
+- Socket = IP address + Port number
+	frameworks: Nginx, node.js, asyncio...
+	Sockets treated like FD (write & read)
+	Identified by 5 = unique socket:
+		- Type of socket: TCP/UDP
+		- Local Port
+		- Local IP address
+		- Peer's port (optional for UDP)
+		- Peer's IP address (optional for UDP)
+	socket address : {protocol, local-IP, local-port}
+		ex: {tcp, 130.245.1.44, 23}
+	5-tuple : {protocol, local-IP, local-port, remote-IP, remote-port}
+		ex: {tcp, 130.245.1.44, 23, 130.245.1.45, 1024}
+
+
+
+
+
+
