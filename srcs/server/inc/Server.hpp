@@ -1,8 +1,8 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "Webserv.hpp"
-#include "Reseaux/inc/Client.hpp"
+#include "../../Webserv.hpp"
+#include "server/inc/Client.hpp"
 
 class ServerSocket : public Webserv
 {
