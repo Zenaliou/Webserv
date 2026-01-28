@@ -36,6 +36,22 @@
 //\r\n
 //Body (optionnel)
 
+//si ya chunked transfer encoding, le body est divise en chunks
+//chaque chunk commence par sa taille en hexadecimale suivi de \r\n
+//puis les donnees du chunk suivi de \r\n
+//le dernier chunk a une taille de 0
+//exemple :
+//4\r\n
+//Wiki\r\n
+//5\r\n
+//pedia\r\n
+//E\r\n
+// in\r\n
+//chunks.\r\n
+//0\r\n
+//\r\n
+
+
 const std::string &HttpRequest::getMethod() const{
 	return (_method);
 }
@@ -63,11 +79,6 @@ std::string HttpRequest::toLower(const std::string &str)const{
 		lowerStr[i] = std::tolower(static_cast<unsigned char>(str[i]));//cast juste au cas ou c des caracteres accentuees
 	}
 	return lowerStr;
-}
-void HttpRequest::addHeader(std::string key, std::string value){
-	toLower(key);
-	trim(value);
-	_headers[key] = value;
 }
 
 size_t HttpRequest::getContentLength() const{
@@ -131,12 +142,7 @@ bool HttpRequest::parseRequest(const std::string &data){
 	}
 	else if (isChunked())
 	{
-		if (parseChunkedBody(data, bodyStart))
-		{
-			_requestComplete = true;
-		}
-		else
-			_requestComplete = false;
+			_requestComplete = parseChunkBody(data, bodyStart);
 	}
 	else
 	{
@@ -222,5 +228,55 @@ bool HttpRequest::isComplete() const{
 }
 
 bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
-	
+	size_t pos = bodyStart;
+	_body.clear();
+
+	while (pos < data.size())
+	{
+		//lire la taille du chunk en hexadecimale
+		size_t lineEnd = data.find("\r\n", pos);
+		if (lineEnd == std::string::npos)
+			return false; //pas assez de donnees pour lire la taille du chunk
+		
+		std::string chunkSizeLine = data.substr(pos, lineEnd - pos);
+
+		//si apres la taille hexa, il y a une extension apres ;
+		//on s'en fout de l'extension, on garde que la taille
+		size_t semicolon = chunkSizeLine.find(';');
+		if (semicolon != std::string::npos)
+		{
+			chunkSizeLine = chunkSizeLine.substr(0, semicolon);
+		}
+
+		size_t chunkSize = 0;
+		std::istringstream iss(chunkSizeLine);
+		iss >> std::hex >> chunkSize;//converti hexa en decimal
+
+		if (iss.fail())
+			return false; //erreur de conversion
+
+		pos = lineEnd + 2;//saute "\r\n"
+
+		if (chunkSize == 0)//dernier chunk, fin du body
+		{
+			//si pas de trailers donc apres avoir sauter les "\r\n", il y a direct encore "\r\n"
+			if (pos + 2 <= data.size() && data.substr(pos, 2) == "\r\n")
+				return true;
+			//il y a des trailers cad dans le body il y a une partie des headers
+			//donc on doit avoir "\r\n\r\n"
+			size_t finalEnd = data.find("\r\n\r\n", pos);
+			if (finalEnd != std::string::npos)
+				return true;
+			return false;//chunk incomplet
+		}
+
+		if (pos + chunkSize + 2 > data.size())
+		{
+			return false; //pas assez de donnees pour lire le chunk complet
+		}
+
+		_body.append(data, pos, chunkSize);
+		pos += chunkSize + 2; //saute le chunk et le "\r\n"
+	}
+	return false;
 }

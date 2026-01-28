@@ -36,8 +36,6 @@ class HttpRequest{
 
 	std::string toLower(const std::string &str) const;
 
-	void addHeader(std::string key, std::string value);
-
 	bool parseRequest(const std::string &data);
 
 	bool parseRequestLine(const std::string &line);
