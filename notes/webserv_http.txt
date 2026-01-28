@@ -47,7 +47,7 @@ Referrer policy: info from another page
 
 Response :
 Server: Apache/Nginx (can be hidden)
-Set-cookie: send cookies(pieces of data from serv to client) 
+Set-cookie: send cookies(pieces of data from serv to client)
 Content-type: text/html | text/css | image/png | application/json | etc...
 Content-lenght: length in octets
 Date
@@ -99,9 +99,3 @@ Referrer: link or whatever
 		ex: {tcp, 130.245.1.44, 23}
 	5-tuple : {protocol, local-IP, local-port, remote-IP, remote-port}
 		ex: {tcp, 130.245.1.44, 23, 130.245.1.45, 1024}
-
-
-
-
-
-
