@@ -1,0 +1,85 @@
+General header : 4.5
+Request header : 5.3
+Response header : 6.2
+Entity header : 7.1
+Method: 9.
+
+OCTET          = <any 8-bit sequence of data>
+CHAR           = <any US-ASCII character (octets 0 - 127)>
+UPALPHA        = <any US-ASCII uppercase letter "A".."Z">
+LOALPHA        = <any US-ASCII lowercase letter "a".."z">
+ALPHA          = UPALPHA | LOALPHA
+DIGIT          = <any US-ASCII digit "0".."9">
+CTL            = <any US-ASCII control character (octets 0 - 31) and DEL (127)>
+CR             = <US-ASCII CR, carriage return (13)>
+LF             = <US-ASCII LF, linefeed (10)>
+SP             = <US-ASCII SP, space (32)>
+HT             = <US-ASCII HT, horizontal-tab (9)>
+<">            = <US-ASCII double-quote mark (34)>
+
+9. Method
+	- GET		9.3
+	- POST		9.5
+	- DELETE	9.7
+
+
+4.5 General header field:
+	- Cache-Control		14.9
+		check 14.9
+	- Connection		14.10
+	- Date				14.18			<<<
+		Date: HTTP-date
+	- Pragma			14.32
+	- Trailer			14.40
+	- Transfer-Encoding	14.41
+	- Upgrade			14.42
+	- Via				14.45
+		gateway and proxy
+	- Warning			14.46
+
+Response status line:	HTTP-Vers SP Status-code SP Reason-phrase CRLF
+
+Status-code : 10.
+  - 1xx: Informational - Request received, continuing process
+
+  - 2xx: Success - The action was successfully received, understood, and accepted
+
+  - 3xx: Redirection - Further action must be taken in order to complete the request
+
+  - 4xx: Client Error - The request contains bad syntax or cannot be fulfilled
+
+  - 5xx: Server Error - The server failed to fulfill an apparently valid request
+
+6.2 Response header field:
+	- Accept-ranges			14.5
+		???, Accept-Ranges: none
+	- Age					14.6
+		Cache related. Age: x second
+	- ETag					14.19
+	- Location				14.30		<<<
+	- Proxy-Authenticate	14.33
+	- Retry-After			14.37
+		HTTP-date / x seconds
+	- Server				14.38		<<<
+		Server: server_name
+	- Vary					14.44
+	- WWWW-Authenticate		14.47
+
+7.1 Entity header field:
+	- Allow					14.7		<<<
+		For methods. Allow: GET, POST, DELETE
+	- Content-Encoding		14.11		<<<
+		Check 3.5
+	- Content-Language		14.12
+		Check 3.10
+	- Content-Length		14.13		<<<
+		size of entity body, in octets. Content-Length: N >= 0
+	- Content-Location		14.14
+	- Content-MD5			14.15
+	- Content-Range			14.16
+	- Content-Type			14.17		<<<
+		Check Media type 3.7. Content-Type: text/html; charset=ISO-8859-4
+	- Expires				14.21
+		HTTP-date for response expiration
+	- Last-Modified			14.29
+		HTTP-date
