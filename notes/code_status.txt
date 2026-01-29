@@ -1,0 +1,57 @@
+GET:
+| Situation         | Code               | En-têtes réponse                 |
+| ----------------- | ------------------ | -------------------------------- |
+| Ressource trouvée | `200 OK`           | `Content-Type`, `Content-Length` |								<<<<<<<<<<
+| Ressource absente | `404 Not Found`    | `Content-Type` (optionnel)       |								<<<<<<<<<<
+| Pas de droits     | `403 Forbidden`    | —                                |								<<<<<<<<<<
+| Auth requise      | `401 Unauthorized` | `WWW-Authenticate`               |								<<<<<<<<<<
+
+
+si cache
+| Code               | Quand                                 | En-têtes réponse                         |
+| ------------------ | ------------------------------------- | ---------------------------------------- |
+| `304 Not Modified` | `If-None-Match` / `If-Modified-Since` | `ETag`, `Last-Modified`, `Cache-Control` |
+
+
+POST:
+| Situation                | Code              | En-têtes réponse           |
+| ------------------------ | ----------------- | -------------------------- |
+| Création réussie         | `201 Created`     | `Location`, `Content-Type` |								<<<<<<<<<<
+| Traitement sans création | `200 OK`          | `Content-Type`             |								<<<<<<<<<<
+| Accepté async            | `202 Accepted`    | —                          |
+| Données invalides        | `400 Bad Request` | `Content-Type`             |								<<<<<<<<<<
+| Conflit                  | `409 Conflict`    | —                          |
+
+DELETE:
+| Situation                   | Code             | En-têtes réponse |
+| --------------------------- | ---------------- | ---------------- |
+| Suppression OK (sans corps) | `204 No Content` | —                |										<<<<<<<<<<
+| Suppression OK (avec msg)   | `200 OK`         | `Content-Type`   |										<<<<<<<<<<
+| Ressource absente           | `404 Not Found`  |                  |										<<<<<<<<<<
+| Suppression refusée         | `403 Forbidden`  |                  |										<<<<<<<<<<
+
+	DELETE est idempotent → supprimer deux fois = souvent 404 ou 204
+
+
+CODE D'ERREUR GLOBAUX:
+| Code                             | Quand                             |
+| -------------------------------- | --------------------------------- |
+| `400 Bad Request`                | Requête mal formée                |														<<<<<<<<<<<<
+| `405 Method Not Allowed`         | Autre méthode que GET/POST/DELETE | -----> Header a inclure : Allow: GET, POST, DELETE		<<<<<<<<<<<<
+| `411 Length Required`            | POST sans Content-Length          |
+| `413 Payload Too Large`          | Corps trop grand                  |
+| `500 Internal Server Error`      | Bug serveur                       |														<<<<<<<<<<<<
+| `501 Not Implemented`            | Méthode non supportée             |
+| `505 HTTP Version Not Supported` | ≠ HTTP/1.1                        |
+
+
+HEADER OBLIGATOIRE (selon les cas):
+	- Date
+	- Server (optionnel mais classique)
+	- Content-Type
+	- Content-Length
+	- Location (201 / redirect)
+	- Allow (405)
+	- WWW-Authenticate (401)
+
+	- Connection: close
