@@ -15,6 +15,13 @@ class Response
 	public:
 		Response(int statusCode, const std::string &statusMessage);
 		~Response();
+
+		std::string getStatusLine() const;
+		void addHeader(const std::string &key, const std::string &value);
+		// void setBody(const std::string &body);
+		std::string getDate() const;
+
+		void getResponseHeaders() const;
 };
 
 #endif
