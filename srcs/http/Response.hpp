@@ -4,24 +4,44 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <ctime>
 
 class Response
 {
 	private:
-		int _statusCode;
-		std::string _statusMessage;
+		unsigned int _statusCode;
+		std::string _reasonPhrase;
 		std::map<std::string, std::string> _responseHeaders;
 		std::string _responseBody;
 	public:
-		Response(int statusCode, const std::string &statusMessage);
+		Response();
+		Response(unsigned int statusCode, const std::string &reasonPhrase);
 		~Response();
 
+		// getters
+		unsigned int	getStatusCode() const;
+		std::string		getStatusMessage()const;
+		std::map<std::string, std::string>	getResponseHeaders() const;
+		std::string		getResponseBody() const;
+
+		// setters
+		void setStatus(unsigned int statusCode, const std::string &reasonPhrase);
+		void setBody(const std::string &body);
+
+		// methods
+		std::string generateResponse() const;
+
+		// utils
 		std::string getStatusLine() const;
 		void addHeader(const std::string &key, const std::string &value);
-		// void setBody(const std::string &body);
 		std::string getDate() const;
+		void displayResponseHeaders() const;
 
-		void getResponseHeaders() const;
+	class	InvalidStatusCodeException : public std::exception
+	{
+		public:
+		virtual const char *what() const throw();
+	};
 };
 
 #endif
