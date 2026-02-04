@@ -171,9 +171,11 @@ bool HttpRequest::parseRequestLine(const std::string &line){
 
 	//verifie l'uri
 	if (_uri.empty() || _uri[0] != '/')
+	{
 		_errorCode = 400;
 		return false;
-	
+	}
+
 	//verifie la version http
 	if (_httpVersion != "HTTP/1.1") //je sais pas s'il faut rajouter HTTP/1.0
 	{
@@ -213,7 +215,7 @@ bool HttpRequest::hasHeader(const std::string &name) const{
 	if (_headers.find(toLower(name)) != _headers.end())
 		return true;
 	else
-		false;
+		return false;
 }
 
 bool HttpRequest::isChunked() const{
