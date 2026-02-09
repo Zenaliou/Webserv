@@ -3,7 +3,7 @@
 CGI::CGI() {}
 CGI::~CGI() {}
 
-char** CGI::buildEnv()
+char**	CGI::buildEnv()
 {
 	std::vector<std::string> env;
 
@@ -33,6 +33,14 @@ char** CGI::buildEnv()
 	envp[env.size()] = NULL;
 	return (envp);
 }
+
+void	freeEnv(char** env)
+{
+	for (size_t i = 0; env[i]; i++)
+		delete[] env[i];
+	delete[] env;
+}
+
 
 void	CGI::setMethod(const std::string &method)
 {
