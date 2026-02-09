@@ -16,10 +16,12 @@ struct Server {
 	std::map<int, std::string> errorPages;
 	std::string root;
 	std::string index;
+	bool autoindex;
+	std::vector<std::string> allowedMethods;
 	std::vector<Location> locations;
 
-	Server() : host("0.0.0.0"), port(8080), clientMaxBodySize(1000000){}
-	//on initialise ces 3 valeurs car le reste vide par defaut
+	Server() : host("0.0.0.0"), port(8080), clientMaxBodySize(1000000), autoindex(false){}
+	//on initialise ces 4 valeurs car le reste vide par defaut
 };
 
 struct Location {
@@ -28,25 +30,29 @@ struct Location {
 	std::string index;
 	std::vector<std::string> allowedMethods;//conteneur dynamique, alloc et liberation auto
 	size_t clientMaxBodySize;
-	std::string cgiExtension;
-	std::string cgiPath;
+	std::map<std::string, std::string> cgiExtensions;
+	std::string uploadPath;
+	std::string root;
 };
 
 class config{
 	private:
+	std::vector<Server>_servers;//car on peut avoir plusieurs serveurs
 
 	public:
-	config();
-	config(const config& other);
+	config(const std::string &filename);
+	//config(const config& other);
 	~config();
 
-	config& operator= (const config& other);
+	//config& operator= (const config& other);
 
 	void parseConfigFile(const std::string &filename);
 	void parseServer(std::ifstream &file, Server& server);
-	void parseLocation();
+	void parseLocation(std::ifstream &file, Location &location);
 	std::string trim(const std::string &str);
 	std::vector<std::string> split(const std::string &str, char delim);
+
+	const std::vector<Server>&getServers() const;
 };
 
 #endif
