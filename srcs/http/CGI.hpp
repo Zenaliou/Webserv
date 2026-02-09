@@ -1,8 +1,10 @@
 #ifndef CGI_HPP
 	#define CGI_HPP
 	#include <iostream>
+	#include <cstring>
 	#include <string>
 	#include <map>
+	#include <vector>
 
 	class	CGI
 	{
@@ -20,6 +22,7 @@
 			CGI();
 			~CGI();
 
+			// setters to use in Response
 			void	setMethod(const std::string &method);
 			void	setInterpreter(const std::string &interpreter);
 			void	setScriptPath(const std::string &scriptpath);
