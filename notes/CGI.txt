@@ -11,3 +11,5 @@ GATEWAY_INTERFACE	// Toujours CGI/1.1
 Necessaire pour POST, ne pas ajouter le prefixe HTTP_
 CONTENT_LENGTH
 CONTENT_TYPE
+
+Pipe bidirectionnel : [server ---- requete ----> CGI] puis [CGI ---- reponse ----> server]
