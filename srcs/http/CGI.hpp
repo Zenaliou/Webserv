@@ -2,9 +2,12 @@
 	#define CGI_HPP
 	#include <iostream>
 	#include <cstring>
+	#include <cstdlib>
 	#include <string>
 	#include <map>
 	#include <vector>
+	#include <unistd.h>
+	#include <sys/wait.h>
 
 	class	CGI
 	{
@@ -17,7 +20,9 @@
 			std::map<std::string, std::string>	_headers;
 
 			char** buildEnv();
+			char** buildArgv();
 			void freeEnv(char** env);
+			void freeArgv(char** argv);
 		public:
 			CGI();
 			~CGI();
