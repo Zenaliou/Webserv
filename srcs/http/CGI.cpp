@@ -34,7 +34,7 @@ char**	CGI::buildEnv()
 	return (envp);
 }
 
-void	freeEnv(char** env)
+void	CGI::freeEnv(char** env)
 {
 	for (size_t i = 0; env[i]; i++)
 		delete[] env[i];
