@@ -28,13 +28,22 @@ int Client::handleClient()
 		buffer_in += buffer;         // accumulate data
 		
 		// Check if we received complete HTTP headers
-		if (buffer_in.find("\r\n\r\n") != std::string::npos)
+		if (request.parseRequest(buffer_in))
 		{
-			// Send a simple HTTP response
-			buffer_out = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello World!\n";
-			send(fd, buffer_out.c_str(), buffer_out.size(), 0);
-			buffer_in.clear();
-			buffer_out.clear();
+			if (request.isComplete())
+			{
+				// Generate response
+				Response reponse;
+				RequestHandler handler;
+				handler.handleRequest(request, reponse);
+
+				// Send Response
+				buffer_out = reponse.generateResponse();
+				send(fd, buffer_out.c_str(), buffer_out.size(), 0);
+
+				buffer_in.clear();
+				request = HttpRequest(); // reset
+			}
 		}
 		return (1); // keep connection alive
 	}
