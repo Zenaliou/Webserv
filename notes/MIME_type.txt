@@ -1,0 +1,20 @@
+MIME = type/subtype
+
+type -> general category (video, image, text)
+subtype -> specification
+
+2 classes of type: discrete & multipart
+discrete = 1 file
+multipart = multiple part that contain type/subtype
+- discrete :	application (binary data)
+				audio
+				example (for test)
+				font
+				image
+				model (3D)
+				text
+				video
+
+- multipart :	message
+				multipart
+
