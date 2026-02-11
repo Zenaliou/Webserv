@@ -13,8 +13,8 @@
 	{
 		private:
 			std::string	_method;
-			std::string	_interpreter;
-			std::string	_scriptPath;
+			std::string	_interpreter; // exec de python
+			std::string	_scriptPath; // path du fichier a exec
 			std::string	_queryString;
 			std::string	_body;
 			std::map<std::string, std::string>	_headers;
