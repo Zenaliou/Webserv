@@ -1,0 +1,15 @@
+Environnement :
+
+REQUEST_METHOD		// Methode HTTP
+SERVER_PROTOCOL		// Version du HTTP
+SCRIPT_FILENAME		// Chemin absolu vers le SCRIPT_FILENAME
+QUERY_STRING		// Param apres le '?' dans l'URL
+GATEWAY_INTERFACE	// Toujours CGI/1.1
+
++ HTTP_headers
+
+Necessaire pour POST, ne pas ajouter le prefixe HTTP_
+CONTENT_LENGTH
+CONTENT_TYPE
+
+Pipe bidirectionnel : [server ---- requete ----> CGI] puis [CGI ---- reponse ----> server]
