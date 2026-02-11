@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <ctime>
+#include <sstream>
 
 class Response
 {
@@ -36,6 +37,7 @@ class Response
 		void addHeader(const std::string &key, const std::string &value);
 		std::string getDate() const;
 		void displayResponseHeaders() const;
+		std::string intToString(const unsigned int nb) const;
 
 	class	InvalidStatusCodeException : public std::exception
 	{

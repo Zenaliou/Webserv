@@ -51,7 +51,7 @@ void Response::setStatus(unsigned int statusCode, const std::string &reasonPhras
 void Response::setBody(const std::string &body)
 {
 	_responseBody = body;
-	addHeader("Content-Length", std::to_string(_responseBody.size()));
+	addHeader("Content-Length", intToString(_responseBody.size()));
 }
 
 // methods
@@ -69,7 +69,7 @@ std::string Response::generateResponse() const
 // utils
 std::string Response::getStatusLine() const
 {
-	return ("HTTP/1.1 " + std::to_string(_statusCode) + " " + _reasonPhrase + "\r\n");
+	return ("HTTP/1.1 " + intToString(_statusCode) + " " + _reasonPhrase + "\r\n");
 }
 
 void Response::addHeader(const std::string &key, const std::string &value)
@@ -103,4 +103,12 @@ void Response::displayResponseHeaders() const
 const char *Response::InvalidStatusCodeException::what() const throw()
 {
 	return ("Invalid Status Code");
+}
+
+std::string Response::intToString(const unsigned int nb) const
+{
+	std::stringstream	sstring;
+	sstring << nb;
+	std::string	str = sstring.str();
+	return (str);
 }
