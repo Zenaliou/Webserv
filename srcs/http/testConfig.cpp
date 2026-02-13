@@ -26,6 +26,7 @@ int main(int argc, char **argv)
             std::cout << "==============================\n";
 
             std::cout << "Port: " << s.port << "\n";
+            std::cout << "Host: " << s.host << "\n";
             std::cout << "Server name: " << s.serverName << "\n";
             std::cout << "Root: " << s.root << "\n";
             std::cout << "Index: " << s.index << "\n";

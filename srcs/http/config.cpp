@@ -11,29 +11,6 @@ config::config(const std::string &filename){
 
 config::~config(){}
 
-std::string config::trim(const std::string &str){
-	size_t start = str.find_first_not_of(" \t\r\n");
-	if (start == std::string::npos)
-		return "";
-	
-	size_t end = str.find_last_not_of(" \t\r\n");
-	return (str.substr(start, end - start + 1));
-}
-
-std::vector<std::string> config::split(const std::string &str, char delim){
-	std::vector<std::string> result;
-	std::istringstream stream(str);
-	std::string token;
-
-	while (std::getline(stream, token, delim))
-	{
-		token = trim(token);
-		if (!token.empty())
-			result.push_back(token);
-	}
-	return result;
-}
-
 void config::parseConfigFile(const std::string &filename){
 	std::ifstream file(filename.c_str());
 	if (!file.is_open())
@@ -131,16 +108,7 @@ void config::parseServer(std::ifstream &file, Server& server, bool bracket){
 		std::string directive = tokens[0];
 		if (directive == "listen" && tokens.size() >= 2)
 		{
-			try{
-				int port = stringToInt(tokens[1]);
-				if (port < 1024 || port > 65535)//car en dessous port resever pour root et au dessus existe pas
-					throw std::out_of_range("port");
-				server.port = port;
-			}
-			catch (const std::exception&)
-			{
-				std::cerr << "Port invalide\n";
-			}
+			parseListen(tokens[1], server);
 		}
 
 		else if (directive == "server_name" && tokens.size() >= 2)
@@ -238,12 +206,6 @@ void config::parseLocation(std::ifstream &file, Location &location, bool bracket
 				throw std::runtime_error("Expected '{'");
 		}
 	}
-	//while (std::getline(file, line))
-	//{
-	//	line = trim(line);
-	//	if (line == "{")
-	//		break;
-	//}
 
 	while (std::getline(file, line))
 	{
@@ -305,18 +267,52 @@ void config::parseLocation(std::ifstream &file, Location &location, bool bracket
 	}
 }
 
-std::string config::cleanLine(const std::string &line){
+void config::parseListen(const std::string &value, Server &server){
+	size_t colonPos = value.find(':');
+	
+	try {
+		if (colonPos != std::string::npos)
+		{
+			std::string host = value.substr(0, colonPos);
+			std::string portStr = value.substr(colonPos + 1);
+
+			if (host.empty())
+				throw std::runtime_error("Empty host");
+			
+			int port = stringToInt(portStr);
+			if (port < 1024 || port > 65535)//car en dessous port resever pour root et au dessus existe pas
+				throw std::out_of_range("Invalid port");
+			
+			server.host = host;
+			server.port = port;
+		}
+		else{
+			//format port seulement
+			int port = stringToInt(value);
+			if (port < 1024 || port > 65535)//car en dessous port resever pour root et au dessus existe pas
+				throw std::out_of_range("port");
+			
+			server.host = "0.0.0.0";
+			server.port = port;
+		}
+	}
+	catch (const std::exception&)
+	{
+		throw std::runtime_error ("Invalid listen");
+	}
+}
+
+const std::vector<Server>&config::getServers() const{
+	return _servers;
+}
+
+std::string cleanLine(const std::string &line){
 	std::string cleaned = trim(line);
 
 	size_t pos = cleaned.find('#');
 	if (pos != std::string::npos)
 		cleaned = cleaned.substr(0, pos);
 	return trim(cleaned);
-}
-
-
-const std::vector<Server>&config::getServers() const{
-	return _servers;
 }
 
 int stringToInt(const std::string &str){
@@ -327,4 +323,27 @@ int stringToInt(const std::string &str){
 	if (iss.fail() || !iss.eof())
 		throw std::runtime_error("Invalid integer");
 	return value;
+}
+
+std::string trim(const std::string &str){
+	size_t start = str.find_first_not_of(" \t\r\n");
+	if (start == std::string::npos)
+		return "";
+	
+	size_t end = str.find_last_not_of(" \t\r\n");
+	return (str.substr(start, end - start + 1));
+}
+
+std::vector<std::string> split(const std::string &str, char delim){
+	std::vector<std::string> result;
+	std::istringstream stream(str);
+	std::string token;
+
+	while (std::getline(stream, token, delim))
+	{
+		token = trim(token);
+		if (!token.empty())
+			result.push_back(token);
+	}
+	return result;
 }

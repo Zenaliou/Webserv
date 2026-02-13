@@ -60,13 +60,13 @@ class config{
 	void parseConfigFile(const std::string &filename);
 	void parseServer(std::ifstream &file, Server& server, bool bracket);
 	void parseLocation(std::ifstream &file, Location &location, bool bracket);
-	std::string trim(const std::string &str);
-	std::vector<std::string> split(const std::string &str, char delim);
-	std::string cleanLine(const std::string &line);
-
+	void parseListen(const std::string &value, Server &server);
 	const std::vector<Server>&getServers() const;
 };
 
 int stringToInt(const std::string &str);
+std::string trim(const std::string &str);
+std::vector<std::string> split(const std::string &str, char delim);
+std::string cleanLine(const std::string &line);
 
 #endif
