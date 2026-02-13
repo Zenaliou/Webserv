@@ -73,3 +73,6 @@ server {
       cgi_ext .py .sh;                                         # extensions for executable files, mandatory parameter
   }
 }
+
+recherche du d'un parametre = recherche du chemin avec le plus long prefixe
+locations puis server puis par defaut
