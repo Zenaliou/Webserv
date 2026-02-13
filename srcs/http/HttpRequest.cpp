@@ -51,6 +51,9 @@
 //0\r\n
 //\r\n
 
+HttpRequest::HttpRequest(){}
+
+HttpRequest::~HttpRequest(){}
 
 const std::string &HttpRequest::getMethod() const{
 	return (_method);

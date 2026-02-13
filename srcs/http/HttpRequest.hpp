@@ -20,10 +20,10 @@ class HttpRequest{
 
 	public:
 	HttpRequest();
-	HttpRequest(const HttpRequest& other);
+	//HttpRequest(const HttpRequest& other);
 	~HttpRequest();
 
-	HttpRequest& operator= (const HttpRequest& other);
+	//HttpRequest& operator= (const HttpRequest& other);
 
 	bool isComplete() const;
 

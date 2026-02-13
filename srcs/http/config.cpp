@@ -1,5 +1,7 @@
 #include "config.hpp"
 
+config::config(){}
+
 config::config(const std::string &filename){
 	parseConfigFile(filename);
 
@@ -32,21 +34,80 @@ std::vector<std::string> config::split(const std::string &str, char delim){
 	return result;
 }
 
-void config::parseServer(std::ifstream &file, Server& server){
-	std::string line;
+void config::parseConfigFile(const std::string &filename){
+	std::ifstream file(filename.c_str());
+	if (!file.is_open())
+	{
+		throw std::runtime_error("Can not open config file");
+	}
 
+	std::string line;
 	while (std::getline(file, line))
 	{
-		line = trim(line);
-		if (line == "{")
-			break;
+		line = cleanLine(line);
+		if (line.empty())
+			continue;
+		
+		if (line.find("server") == 0)
+		{
+			bool foundOpenBracket = false;
+			if (line.find('{') != std::string::npos)
+			{
+				foundOpenBracket = true;
+				line.erase(line.find('{'), 1);
+				line = trim(line);
+			}
+			std::vector<std::string> tokens;
+			std::istringstream iss(line);//car separe direct en enlevant les espaces, tab...
+			std::string word;
+			while (iss >> word)
+			{
+				tokens.push_back(word);
+			}
+			if (tokens.size() == 1 && tokens[0] == "server")
+			{
+				Server server;
+				parseServer(file, server, foundOpenBracket);
+				_servers.push_back(server);
+			}
+			else
+			{
+				throw std::runtime_error("Invalid config : '{' missing");
+			}
+		}
+		else
+		{
+			throw std::runtime_error("Invalid config : server missing");
+		}
+	}
+	file.close();
+}
+
+void config::parseServer(std::ifstream &file, Server& server, bool bracket){
+	std::string line;
+	bool foundOpenBracket = bracket;
+
+	if (!foundOpenBracket)
+	{
+		while (std::getline(file, line))
+		{
+			line = cleanLine(line);
+			if (line.empty())
+				continue;
+			if (line == "{")
+			{
+				foundOpenBracket = true;
+				break;
+			}
+			else
+				throw std::runtime_error("Expected '{' after server");
+		}
 	}
 
 	while (std::getline(file, line))
 	{
-		line = trim(line);
-
-		if (line.empty() || line[0] == '#')
+		line = cleanLine(line);
+		if (line.empty())
 			continue;
 		if (line == "}")
 			break;
@@ -56,7 +117,14 @@ void config::parseServer(std::ifstream &file, Server& server){
 			line = trim(line);
 		}
 
-		std::vector<std::string>tokens = split(line, ' ');
+		std::vector<std::string> tokens;
+		std::istringstream iss(line);//car separe direct en enlevant les espaces, tab...
+		std::string word;
+		while (iss >> word)
+		{
+			tokens.push_back(word);
+		}
+		//std::vector<std::string>tokens = split(line, ' ');
 		if (tokens.empty())
 			continue;
 		
@@ -64,7 +132,7 @@ void config::parseServer(std::ifstream &file, Server& server){
 		if (directive == "listen" && tokens.size() >= 2)
 		{
 			try{
-				int port = std::stoi(tokens[1]);
+				int port = stringToInt(tokens[1]);
 				if (port < 1024 || port > 65535)//car en dessous port resever pour root et au dessus existe pas
 					throw std::out_of_range("port");
 				server.port = port;
@@ -80,7 +148,7 @@ void config::parseServer(std::ifstream &file, Server& server){
 		else if (directive == "error_page" && tokens.size() >= 3)
 		{
 			try{
-				int code = std::stoi(tokens[1]);
+				int code = stringToInt(tokens[1]);
 				if (code < 400 || code > 599)
 					throw std::out_of_range("Invalid error code");
 				server.errorPages[code] = tokens[2];
@@ -93,7 +161,7 @@ void config::parseServer(std::ifstream &file, Server& server){
 		else if (directive == "client_max_body_size" && tokens.size() >= 2)
 		{
 			try {
-				int size = std::stoi(tokens[1]);
+				int size = stringToInt(tokens[1]);
 				if (size <= 0)
 					throw std::out_of_range("Invalid body size");
 				server.clientMaxBodySize = size;
@@ -126,6 +194,13 @@ void config::parseServer(std::ifstream &file, Server& server){
 		}
 		else if (directive == "location" && tokens.size() >= 2)
 		{
+			bool foundOpenBracket = false;
+			if (line.find('{') != std::string::npos)
+			{
+				foundOpenBracket = true;
+				line.erase(line.find('{'), 1);
+				line = trim(line);
+			}
 			Location location;
 			location.path = tokens[1];
 			location.root = server.root;
@@ -133,7 +208,7 @@ void config::parseServer(std::ifstream &file, Server& server){
 			location.autoindex = server.autoindex;
 			location.clientMaxBodySize = server.clientMaxBodySize;
 			location.allowedMethods = server.allowedMethods;
-			parseLocation(file, location);
+			parseLocation(file, location, foundOpenBracket);
 			server.locations.push_back(location);
 		}
 		else
@@ -143,20 +218,37 @@ void config::parseServer(std::ifstream &file, Server& server){
 	}
 }
 
-void config::parseLocation(std::ifstream &file, Location &location){
+void config::parseLocation(std::ifstream &file, Location &location, bool bracket){
 	std::string line;
+	bool foundOpenBracket = bracket;
 
-	while (std::getline(file, line))
+	if (!foundOpenBracket)
 	{
-		line = trim(line);
-		if (line == "{")
-			break;
+		while (std::getline(file, line))
+		{
+			line = cleanLine(line);
+			if (line.empty())
+				continue;
+			if (line == "{")
+			{
+				foundOpenBracket = true;
+				break;
+			}
+			else
+				throw std::runtime_error("Expected '{'");
+		}
 	}
+	//while (std::getline(file, line))
+	//{
+	//	line = trim(line);
+	//	if (line == "{")
+	//		break;
+	//}
 
 	while (std::getline(file, line))
 	{
-		line = trim(line);
-		if (line.empty() || line[0] == '#')
+		line = cleanLine(line);
+		if (line.empty())
 			continue;
 		if (line == "}")
 			break;
@@ -193,7 +285,7 @@ void config::parseLocation(std::ifstream &file, Location &location){
 		else if (directive == "client_max_body_size" && tokens.size() >= 2)
 		{
 			try {
-			int size = std::stoi(tokens[1]);
+			int size = stringToInt(tokens[1]);
 			if (size <= 0)
 				throw std::out_of_range("Invalid body size");
 			location.clientMaxBodySize = size;
@@ -213,6 +305,26 @@ void config::parseLocation(std::ifstream &file, Location &location){
 	}
 }
 
+std::string config::cleanLine(const std::string &line){
+	std::string cleaned = trim(line);
+
+	size_t pos = cleaned.find('#');
+	if (pos != std::string::npos)
+		cleaned = cleaned.substr(0, pos);
+	return trim(cleaned);
+}
+
+
 const std::vector<Server>&config::getServers() const{
 	return _servers;
+}
+
+int stringToInt(const std::string &str){
+	std::istringstream iss(str);
+	int value;
+	iss >> value;
+
+	if (iss.fail() || !iss.eof())
+		throw std::runtime_error("Invalid integer");
+	return value;
 }
