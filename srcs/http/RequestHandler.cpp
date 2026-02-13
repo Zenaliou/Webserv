@@ -9,10 +9,10 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 	const std::string &method = request.getMethod();
 	if (method == "GET")
 		handleGet(request, response);
-	else if (method == "POST")
-		handlePost(request, response);
-	else if (method == "DELETE")
-		handleDelete(request, response);
+	// else if (method == "POST")
+	// 	handlePost(request, response);
+	// else if (method == "DELETE")
+	// 	handleDelete(request, response);
 	else
 	{
 		response.setStatus(405, "Method Not Allowed");
@@ -36,7 +36,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response)
 	if (stat(fullPath.c_str(), &fileStat) != 0)
 	{
 		response.setStatus(404, "Not Found");
-		response.setBody("404 Not Found\n");
+		response.setBody("404 Not Found\n"); // remplacer tous les 4xx par un fichier
 		response.addHeader("Content-Type", "text/plain");
 		return;
 	}
@@ -76,7 +76,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response)
 	size_t dotPos = fullPath.find_last_of('.');
 	std::string extension;
 	if (dotPos != std::string::npos)
-		extension = fullPath.substr(dotPos + 1);
+		extension = fullPath.substr(dotPos);
 	std::string mime = _mimetypes.getMimeType(extension);
 	response.addHeader("Content-Type", mime);
 }
