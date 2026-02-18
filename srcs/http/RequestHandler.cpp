@@ -89,7 +89,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 
 	std::string path = request.getUri();
 	if (path == "/")
-	path = "/index.html";
+		path.append(location.getIndex());
 	
 	std::string fullPath = root + path;
 	
@@ -97,7 +97,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 	size_t dotPos = fullPath.find_last_of('.');
 	std::string extension;
 	if (dotPos != std::string::npos)
-	extension = fullPath.substr(dotPos);
+		extension = fullPath.substr(dotPos);
 	
 	// Vérifier si c'est un script CGI
 	if (cgiExtensions.find(extension) != cgiExtensions.end())
