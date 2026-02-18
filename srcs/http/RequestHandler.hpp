@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 	class	RequestHandler
 	{
@@ -21,6 +22,7 @@
 		private:
 			MimeType	_mimetypes;
 			const Server &selectServer(const config &config, int port, const std::string &host);
+			const Location &selectLocation(const Server &server, const std::string &path);
 			void handleGet(const HttpRequest &request, Response &response, const Server &server);
 			void handlePost(const HttpRequest &request, Response &response, const Server &server);
 			// void handleDelete(const HttpRequest &request, Response &response, const config &config);
