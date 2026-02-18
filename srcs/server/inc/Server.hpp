@@ -7,7 +7,8 @@
 class ServerSocket : public Webserv
 {
 	public:
-		ServerSocket(int port) : Webserv(port)
+
+		ServerSocket(int port) : Webserv(port), _port(port)
 		{
 			sockaddr_in addr;
 			addr.sin_family = AF_INET;          // IPv4
@@ -28,8 +29,12 @@ class ServerSocket : public Webserv
 		void run();          // main server loop
 		void acceptClient(); // accept a new client connection
 		void removeClient(int fd); // remove a disconnected client
+		
+		int getPort() const { return _port; }
 
 	private:
+		int _port;
+		
 		ServerSocket(const ServerSocket&);
 		ServerSocket& operator=(const ServerSocket&);
 };
