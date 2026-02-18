@@ -1,11 +1,24 @@
-#include "server/inc/Server.hpp"
+#include "server/inc/WebservManager.hpp"
+#include "http/config.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
 	try
 	{
-		ServerSocket server(1024);
-		server.run();
+		// Parse configuration file
+		std::string configFile = "conf/default_test.conf";
+		if (argc > 1)
+			configFile = argv[1];
+		
+		config cfg(configFile);
+		const std::vector<Server> &servers = cfg.getServers();
+		
+		if (servers.empty())
+			throw std::runtime_error("No server configuration found");
+		
+		// Create WebservManager to handle all servers
+		WebservManager manager(cfg);
+		manager.run();
 	}
 	catch (const std::exception &e)
 	{

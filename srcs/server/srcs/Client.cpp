@@ -35,7 +35,7 @@ int Client::handleClient()
 				// Generate response
 				Response reponse;
 				RequestHandler handler;
-				handler.handleRequest(request, reponse);
+				handler.handleRequest(request, reponse, *_config, _port);
 
 				// Send Response
 				buffer_out = reponse.generateResponse();
