@@ -16,13 +16,15 @@
 		public:
 			RequestHandler();
 			~RequestHandler();
-			void handleRequest(const HttpRequest &request, Response &response, const config &config);
+			void handleRequest(const HttpRequest &request, Response &response, const config &config, int port);
 
 		private:
 			MimeType	_mimetypes;
-			void handleGet(const HttpRequest &request, Response &response, const config &config);
-			void handlePost(const HttpRequest &request, Response &response, const config &config);
+			const Server &selectServer(const config &config, int port, const std::string &host);
+			void handleGet(const HttpRequest &request, Response &response, const Server &server);
+			void handlePost(const HttpRequest &request, Response &response, const Server &server);
 			// void handleDelete(const HttpRequest &request, Response &response, const config &config);
+
 	};
 
 #endif

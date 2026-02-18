@@ -4,35 +4,59 @@ RequestHandler::RequestHandler() {}
 
 RequestHandler::~RequestHandler() {}
 
-void RequestHandler::handleRequest(const HttpRequest &request, Response &response, const config &config)
+const Server &RequestHandler::selectServer(const config &config, int port, const std::string &host)
 {
-	const std::string &method = request.getMethod();
-	if (method == "GET")
-		handleGet(request, response, config);
-	else if (method == "POST")
-		handlePost(request, response, config);
-	// else if (method == "DELETE")
-	// 	handleDelete(request, response, config);
-	else
+	const std::vector<Server> &servers = config.getServers();
+	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		response.setStatus(405, "Method Not Allowed");
-		response.setBody("405 Method Not Allowed\n");
-		response.addHeader("Allow", "GET, POST, DELETE");
+		if (it->getPort() == port && it->getHost() == host)
+			return *it;
+	}
+	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		if (it->getPort() == port)
+			return *it;
+	}
+	if (!servers.empty())
+		return servers[0];
+	throw std::runtime_error("No server configuration found");
+}
+
+void RequestHandler::handleRequest(const HttpRequest &request, Response &response, const config &config, int port)
+{
+	try
+	{
+		const Server &server = selectServer(config, port, request.getHeaderValue("Host"));
+		const std::string &method = request.getMethod();
+		if (method == "GET")
+			handleGet(request, response, server);
+		else if (method == "POST")
+			handlePost(request, response, server);
+		// else if (method == "DELETE")
+		// 	handleDelete(request, response, server);
+		else
+		{
+			response.setStatus(405, "Method Not Allowed");
+			response.setBody("405 Method Not Allowed\n");
+			response.addHeader("Allow", "GET, POST, DELETE");
+		}
+	}
+	catch (const std::exception &e)
+	{
+		response.setStatus(500, "Internal Server Error");
+		response.setBody("500 Internal Server Error\n");
+		response.addHeader("Content-Type", "text/plain");
 	}
 }
 
-void RequestHandler::handleGet(const HttpRequest &request, Response &response, const config &config)
+void RequestHandler::handleGet(const HttpRequest &request, Response &response, const Server &server)
 {
-	const std::vector<Server> &servers = config.getServers();
 	std::string root;
 	std::map<std::string, std::string> cgiExtensions;
-	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	for (std::vector<Location>::const_iterator location_it = server.locations.begin(); location_it != server.locations.end(); ++location_it)
 	{
-		for (std::vector<Location>::const_iterator location_it = it->locations.begin(); location_it != it->locations.end(); ++location_it)
-		{
-			root = location_it->getRoot();  // root de chaque location
-			cgiExtensions = location_it->getCgiExtensions();
-		}
+		root = location_it->getRoot();
+		cgiExtensions = location_it->getCgiExtensions();
 	}
 	std::string path = request.getUri();
 	if (path == "/")
@@ -99,22 +123,17 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 	response.addHeader("Content-Type", mime);
 }
 
-void RequestHandler::handlePost(const HttpRequest &request, Response &response, const config &config)
+void RequestHandler::handlePost(const HttpRequest &request, Response &response, const Server &server)
 {
-	const std::vector<Server> &servers = config.getServers();
 	std::string root;
 	std::string uploadPath;
 	std::map<std::string, std::string> cgiExtensions;
 
-	// Récupérer les configurations depuis le fichier de config
-	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	for (std::vector<Location>::const_iterator location_it = server.locations.begin(); location_it != server.locations.end(); ++location_it)
 	{
-		for (std::vector<Location>::const_iterator location_it = it->locations.begin(); location_it != it->locations.end(); ++location_it)
-		{
-			root = location_it->getRoot();
-			uploadPath = location_it->getUploadPath();
-			cgiExtensions = location_it->getCgiExtensions();
-		}
+		root = location_it->getRoot();
+		uploadPath = location_it->getUploadPath();
+		cgiExtensions = location_it->getCgiExtensions();
 	}
 
 	std::string path = request.getUri();
