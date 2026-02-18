@@ -59,11 +59,12 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 	try
 	{
 		const Server &server = selectServer(config, port, request.getHeaderValue("Host"));
+		const Location &location = selectLocation(server, request.getUri());
 		const std::string &method = request.getMethod();
 		if (method == "GET")
-			handleGet(request, response, server);
+			handleGet(request, response, location);
 		else if (method == "POST")
-			handlePost(request, response, server);
+			handlePost(request, response, location);
 		// else if (method == "DELETE")
 		// 	handleDelete(request, response, server);
 		else
@@ -81,175 +82,154 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 	}
 }
 
-void RequestHandler::handleGet(const HttpRequest &request, Response &response, const Server &server)
+void RequestHandler::handleGet(const HttpRequest &request, Response &response, const Location &location)
 {
-	try
+	std::string root = location.getRoot();
+	const std::map<std::string, std::string> &cgiExtensions = location.getCgiExtensions();
+
+	std::string path = request.getUri();
+	if (path == "/")
+	path = "/index.html";
+	
+	std::string fullPath = root + path;
+	
+	// Extraire l'extension
+	size_t dotPos = fullPath.find_last_of('.');
+	std::string extension;
+	if (dotPos != std::string::npos)
+	extension = fullPath.substr(dotPos);
+	
+	// Vérifier si c'est un script CGI
+	if (cgiExtensions.find(extension) != cgiExtensions.end())
 	{
-		const Location &location = selectLocation(server, request.getUri());
-		std::string root = location.getRoot();
-		const std::map<std::string, std::string> &cgiExtensions = location.getCgiExtensions();
-
-		std::string path = request.getUri();
-		if (path == "/")
-			path = "/index.html";
-
-		std::string fullPath = root + path;
-
-		// Extraire l'extension
-		size_t dotPos = fullPath.find_last_of('.');
-		std::string extension;
-		if (dotPos != std::string::npos)
-			extension = fullPath.substr(dotPos);
-
-		// Vérifier si c'est un script CGI
-		if (cgiExtensions.find(extension) != cgiExtensions.end())
-		{
-			CGI cgi;
-			cgi.setMethod("GET");
-			cgi.setScriptPath(fullPath);
-			cgi.setInterpreter(cgiExtensions.at(extension));
-
-			std::string cgiOutput = cgi.execute();
-			response.setStatus(200, "OK");
-			response.setBody(cgiOutput);
-			response.addHeader("Content-Type", "text/html");
-			return;
-		}
-
-		// Vérifier si le fichier existe
-		struct stat fileStat;
-		if (stat(fullPath.c_str(), &fileStat) != 0)
-		{
-			response.setStatus(404, "Not Found");
-			response.setBody("404 Not Found\n");
-			response.addHeader("Content-Type", "text/plain");
-			return;
-		}
-
-		// Si c'est un dossier, chercher index.html
-		if (S_ISDIR(fileStat.st_mode))
-		{
-			std::string indexPath = fullPath + "/index.html";
-			if (stat(indexPath.c_str(), &fileStat) != 0)
-			{
-				response.setStatus(403, "Forbidden");
-				response.setBody("403 Directory access forbidden\n");
-				response.addHeader("Content-Type", "text/plain");
-				return;
-			}
-			fullPath = indexPath;
-		}
-
-		// Lire le fichier
-		std::ifstream file(fullPath.c_str(), std::ios::in | std::ios::binary);
-		if (!file)
+		CGI cgi;
+		cgi.setMethod("GET");
+		cgi.setScriptPath(fullPath);
+		cgi.setInterpreter(cgiExtensions.at(extension));
+		
+		std::string cgiOutput = cgi.execute();
+		response.setStatus(200, "OK");
+		response.setBody(cgiOutput);
+		response.addHeader("Content-Type", "text/html");
+		return;
+	}
+	
+	// Vérifier si le fichier existe
+	struct stat fileStat;
+	if (stat(fullPath.c_str(), &fileStat) != 0)
+	{
+		response.setStatus(404, "Not Found");
+		response.setBody("404 Not Found\n");
+		response.addHeader("Content-Type", "text/plain");
+		return;
+	}
+	
+	// Si c'est un dossier, chercher index.html
+	if (S_ISDIR(fileStat.st_mode))
+	{
+		std::string indexPath = fullPath + "/index.html";
+		if (stat(indexPath.c_str(), &fileStat) != 0)
 		{
 			response.setStatus(403, "Forbidden");
-			response.setBody("403 Cannot open file\n");
+			response.setBody("403 Directory access forbidden\n");
 			response.addHeader("Content-Type", "text/plain");
 			return;
 		}
-
-		std::ostringstream buffer;
-		buffer << file.rdbuf();
-		file.close();
-
-		response.setStatus(200, "OK");
-		response.setBody(buffer.str());
-
-		// Déterminer le MIME type
-		std::string mime = _mimetypes.getMimeType(extension);
-		response.addHeader("Content-Type", mime);
+		fullPath = indexPath;
 	}
-	catch (const std::exception &e)
+	
+	// Lire le fichier
+	std::ifstream file(fullPath.c_str(), std::ios::in | std::ios::binary);
+	if (!file)
 	{
-		response.setStatus(500, "Internal Server Error");
-		response.setBody("500 Internal Server Error\n");
+		response.setStatus(403, "Forbidden");
+		response.setBody("403 Cannot open file\n");
 		response.addHeader("Content-Type", "text/plain");
+		return;
 	}
+	
+	std::ostringstream buffer;
+	buffer << file.rdbuf();
+	file.close();
+	
+	response.setStatus(200, "OK");
+	response.setBody(buffer.str());
+	
+	// Déterminer le MIME type
+	std::string mime = _mimetypes.getMimeType(extension);
+	response.addHeader("Content-Type", mime);
 }
 
-void RequestHandler::handlePost(const HttpRequest &request, Response &response, const Server &server)
+void RequestHandler::handlePost(const HttpRequest &request, Response &response, const Location &location)
 {
-	try
+	std::string root = location.getRoot();
+	std::string uploadPath = location.getUploadPath();
+	const std::map<std::string, std::string> &cgiExtensions = location.getCgiExtensions();
+
+	std::string path = request.getUri();
+	std::string fullPath = root + path;
+
+	// Extraire l'extension du fichier
+	size_t dotPos = fullPath.find_last_of('.');
+	std::string extension;
+	if (dotPos != std::string::npos)
+		extension = fullPath.substr(dotPos);
+
+	const std::string &body = request.getBody();
+
+	// Cas 1 : Script CGI POST
+	if (cgiExtensions.find(extension) != cgiExtensions.end())
 	{
-		const Location &location = selectLocation(server, request.getUri());
-		std::string root = location.getRoot();
-		std::string uploadPath = location.getUploadPath();
-		const std::map<std::string, std::string> &cgiExtensions = location.getCgiExtensions();
+		CGI cgi;
+		cgi.setMethod("POST");
+		cgi.setScriptPath(fullPath);
+		cgi.setInterpreter(cgiExtensions.at(extension));
+		cgi.setBody(body);
 
-		std::string path = request.getUri();
-		std::string fullPath = root + path;
+		std::string cgiOutput = cgi.execute();
+		response.setStatus(200, "OK");
+		response.setBody(cgiOutput);
+		response.addHeader("Content-Type", "text/html");
+		return;
+	}
 
-		// Extraire l'extension du fichier
-		size_t dotPos = fullPath.find_last_of('.');
-		std::string extension;
-		if (dotPos != std::string::npos)
-			extension = fullPath.substr(dotPos);
+	// Cas 2 : Upload de fichier
+	if (body.empty())
+	{
+		response.setStatus(400, "Bad Request");
+		response.setBody("400 POST body is empty\n");
+		response.addHeader("Content-Type", "text/plain");
+		return;
+	}
 
-		const std::string &body = request.getBody();
+	// Créer le dossier upload s'il n'existe pas
+	if (!uploadPath.empty())
+	{
+		// Générer un nom de fichier unique (timestamp ou autre)
+		std::string filename = "uploaded_file";
+		std::string uploadedFilePath = uploadPath + "/" + filename;
 
-		// Cas 1 : Script CGI POST
-		if (cgiExtensions.find(extension) != cgiExtensions.end())
+		// Écrire le fichier
+		std::ofstream outFile(uploadedFilePath.c_str(), std::ios::out | std::ios::binary);
+		if (!outFile)
 		{
-			CGI cgi;
-			cgi.setMethod("POST");
-			cgi.setScriptPath(fullPath);
-			cgi.setInterpreter(cgiExtensions.at(extension));
-			cgi.setBody(body);
-
-			std::string cgiOutput = cgi.execute();
-			response.setStatus(200, "OK");
-			response.setBody(cgiOutput);
-			response.addHeader("Content-Type", "text/html");
-			return;
-		}
-
-		// Cas 2 : Upload de fichier
-		if (body.empty())
-		{
-			response.setStatus(400, "Bad Request");
-			response.setBody("400 POST body is empty\n");
+			response.setStatus(403, "Forbidden");
+			response.setBody("403 Cannot write file\n");
 			response.addHeader("Content-Type", "text/plain");
 			return;
 		}
-
-		// Créer le dossier upload s'il n'existe pas
-		if (!uploadPath.empty())
-		{
-			// Générer un nom de fichier unique (timestamp ou autre)
-			std::string filename = "uploaded_file";
-			std::string uploadedFilePath = uploadPath + "/" + filename;
-
-			// Écrire le fichier
-			std::ofstream outFile(uploadedFilePath.c_str(), std::ios::out | std::ios::binary);
-			if (!outFile)
-			{
-				response.setStatus(403, "Forbidden");
-				response.setBody("403 Cannot write file\n");
-				response.addHeader("Content-Type", "text/plain");
-				return;
-			}
-			outFile << body;
-			outFile.close();
-
-			response.setStatus(201, "Created");
-			response.setBody("File uploaded successfully\n");
-			response.addHeader("Content-Type", "text/plain");
-			return;
-		}
-
-		// Cas 3 : Pas de destination d'upload
-		response.setStatus(405, "Method Not Allowed");
-		response.setBody("405 POST not allowed for this location\n");
+		outFile << body;
+		outFile.close();
+		response.setStatus(201, "Created");
+		response.setBody("File uploaded successfully\n");
 		response.addHeader("Content-Type", "text/plain");
+		return;
 	}
-	catch (const std::exception &e)
-	{
-		response.setStatus(500, "Internal Server Error");
-		response.setBody("500 Internal Server Error\n");
-		response.addHeader("Content-Type", "text/plain");
-	}
+
+	// Cas 3 : Pas de destination d'upload
+	response.setStatus(405, "Method Not Allowed");
+	response.setBody("405 POST not allowed for this location\n");
+	response.addHeader("Content-Type", "text/plain");
 }
 
 // void RequestHandler::handleDelete(const HttpRequest &request, Response &response, const config &config)

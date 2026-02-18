@@ -23,8 +23,8 @@
 			MimeType	_mimetypes;
 			const Server &selectServer(const config &config, int port, const std::string &host);
 			const Location &selectLocation(const Server &server, const std::string &path);
-			void handleGet(const HttpRequest &request, Response &response, const Server &server);
-			void handlePost(const HttpRequest &request, Response &response, const Server &server);
+			void handleGet(const HttpRequest &request, Response &response, const Location &location);
+			void handlePost(const HttpRequest &request, Response &response, const Location &location);
 			// void handleDelete(const HttpRequest &request, Response &response, const config &config);
 
 	};
