@@ -9,8 +9,8 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 	const std::string &method = request.getMethod();
 	if (method == "GET")
 		handleGet(request, response, config);
-	// else if (method == "POST")
-	// 	handlePost(request, response, config);
+	else if (method == "POST")
+		handlePost(request, response, config);
 	// else if (method == "DELETE")
 	// 	handleDelete(request, response, config);
 	else
@@ -46,9 +46,8 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 	if (dotPos != std::string::npos)
 		extension = fullPath.substr(dotPos);
 
-	if (cgiExtensions.find(extension) != cgiExtensions.end())
+	if (cgiExtensions.find(extension) != cgiExtensions.end()) // CGI
 	{
-		// C'est un script CGI
 		CGI cgi;
 		cgi.setMethod("GET");
 		cgi.setScriptPath(fullPath);
@@ -79,7 +78,6 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 		}
 		fullPath = indexPath;
 	}
-	// Déterminer si c'est un script CGI
 	// Lecture fichier
 	std::ifstream file(fullPath.c_str(), std::ios::in | std::ios::binary);
 	if (!file)
@@ -101,17 +99,92 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 	response.addHeader("Content-Type", mime);
 }
 
-// void RequestHandler::handlePost(const HttpRequest &request, Response &response, const config &config)
-// {
-// 	const std::string &body = request.getBody();
-// 	if (body.empty())
-// 	{
-// 		response.setStatus(400, "Bad Request");
-// 		response.setBody("400 POST body is empty\n");
-// 		response.addHeader("Content-Type", "text/plain");
-// 		return;
-// 	}
-// }
+void RequestHandler::handlePost(const HttpRequest &request, Response &response, const config &config)
+{
+	const std::vector<Server> &servers = config.getServers();
+	std::string root;
+	std::string uploadPath;
+	std::map<std::string, std::string> cgiExtensions;
+
+	// Récupérer les configurations depuis le fichier de config
+	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		for (std::vector<Location>::const_iterator location_it = it->locations.begin(); location_it != it->locations.end(); ++location_it)
+		{
+			root = location_it->getRoot();
+			uploadPath = location_it->getUploadPath();
+			cgiExtensions = location_it->getCgiExtensions();
+		}
+	}
+
+	std::string path = request.getUri();
+	std::string fullPath = root + path;
+
+	// Extraire l'extension du fichier
+	size_t dotPos = fullPath.find_last_of('.');
+	std::string extension;
+	if (dotPos != std::string::npos)
+		extension = fullPath.substr(dotPos);
+
+	const std::string &body = request.getBody();
+
+	// Cas 1 : Script CGI POST
+	if (cgiExtensions.find(extension) != cgiExtensions.end())
+	{
+		CGI cgi;
+		cgi.setMethod("POST");
+		cgi.setScriptPath(fullPath);
+		cgi.setInterpreter(cgiExtensions[extension]);
+		cgi.setBody(body);
+		// Ajouter les headers si nécessaire
+		// cgi.setHeaders(request.getHeaders());
+
+		std::string cgiOutput = cgi.execute();
+		response.setStatus(200, "OK");
+		response.setBody(cgiOutput);
+		response.addHeader("Content-Type", "text/html");
+		return;
+	}
+
+	// Cas 2 : Upload de fichier
+	if (body.empty())
+	{
+		response.setStatus(400, "Bad Request");
+		response.setBody("400 POST body is empty\n");
+		response.addHeader("Content-Type", "text/plain");
+		return;
+	}
+
+	// Créer le dossier upload s'il n'existe pas
+	if (!uploadPath.empty())
+	{
+		// Générer un nom de fichier unique (timestamp ou autre)
+		std::string filename = "uploaded_file";
+		std::string uploadedFilePath = uploadPath + "/" + filename;
+
+		// Écrire le fichier
+		std::ofstream outFile(uploadedFilePath.c_str(), std::ios::out | std::ios::binary);
+		if (!outFile)
+		{
+			response.setStatus(403, "Forbidden");
+			response.setBody("403 Cannot write file\n");
+			response.addHeader("Content-Type", "text/plain");
+			return;
+		}
+		outFile << body;
+		outFile.close();
+
+		response.setStatus(201, "Created");
+		response.setBody("File uploaded successfully\n");
+		response.addHeader("Content-Type", "text/plain");
+		return;
+	}
+
+	// Cas 3 : Pas de destination d'upload
+	response.setStatus(405, "Method Not Allowed");
+	response.setBody("405 POST not allowed for this location\n");
+	response.addHeader("Content-Type", "text/plain");
+}
 
 // void RequestHandler::handleDelete(const HttpRequest &request, Response &response, const config &config)
 // {

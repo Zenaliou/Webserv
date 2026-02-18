@@ -21,7 +21,7 @@
 		private:
 			MimeType	_mimetypes;
 			void handleGet(const HttpRequest &request, Response &response, const config &config);
-			// void handlePost(const HttpRequest &request, Response &response, const config &config);
+			void handlePost(const HttpRequest &request, Response &response, const config &config);
 			// void handleDelete(const HttpRequest &request, Response &response, const config &config);
 	};
 
