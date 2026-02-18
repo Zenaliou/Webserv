@@ -4,6 +4,8 @@
 #include "HttpRequest.hpp"
 #include "Response.hpp"
 #include "MimeType.hpp"
+#include "config.hpp"
+#include "CGI.hpp"
 #include <iostream>
 #include <sys/stat.h>
 #include <fstream>
@@ -14,13 +16,13 @@
 		public:
 			RequestHandler();
 			~RequestHandler();
-			void handleRequest(const HttpRequest &request, Response &response);
+			void handleRequest(const HttpRequest &request, Response &response, const config &config);
 
 		private:
 			MimeType	_mimetypes;
-			void handleGet(const HttpRequest &request, Response &response);
-			// void handlePost(const HttpRequest &request, Response &response);
-			// void handleDelete(const HttpRequest &request, Response &response);
+			void handleGet(const HttpRequest &request, Response &response, const config &config);
+			// void handlePost(const HttpRequest &request, Response &response, const config &config);
+			// void handleDelete(const HttpRequest &request, Response &response, const config &config);
 	};
 
 #endif

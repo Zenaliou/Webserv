@@ -10,7 +10,6 @@ char**	CGI::buildEnv()
 	env.push_back("REQUEST_METHOD=" + _method);
 	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	env.push_back("SCRIPT_FILENAME=" + _scriptPath);
-	env.push_back("QUERY_STRING=" + _queryString);
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
@@ -74,11 +73,6 @@ void	CGI::setInterpreter(const std::string &interpreter)
 void	CGI::setScriptPath(const std::string &scriptpath)
 {
 	this->_scriptPath = scriptpath;
-}
-
-void	CGI::setQueryString(const std::string &querystring)
-{
-	this->_queryString = querystring;
 }
 
 void	CGI::setBody(const std::string &body)
