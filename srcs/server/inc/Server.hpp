@@ -3,12 +3,13 @@
 
 #include "../../Webserv.hpp"
 #include "server/inc/Client.hpp"
+#include "../../http/config.hpp"
 
 class ServerSocket : public Webserv
 {
 	public:
 
-		ServerSocket(int port) : Webserv(port), _port(port)
+		ServerSocket(int port, const config &cfg) : Webserv(port), _port(port), _config(&cfg)
 		{
 			sockaddr_in addr;
 			addr.sin_family = AF_INET;          // IPv4
@@ -25,15 +26,13 @@ class ServerSocket : public Webserv
 			
 			setNonBlocking(getFd()); // set socket to non-blocking mode
 		}
-
-		void run();          // main server loop
-		void acceptClient(); // accept a new client connection
-		void removeClient(int fd); // remove a disconnected client
 		
 		int getPort() const { return _port; }
+		const config* getConfig() const { return _config; }
 
 	private:
 		int _port;
+		const config *_config;
 		
 		ServerSocket(const ServerSocket&);
 		ServerSocket& operator=(const ServerSocket&);

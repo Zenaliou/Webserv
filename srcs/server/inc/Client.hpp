@@ -5,6 +5,7 @@
 #include "../../http/HttpRequest.hpp"
 #include "../../http/Response.hpp"
 #include "../../http/RequestHandler.hpp"
+#include "../../http/config.hpp"
 
 class Client
 {
@@ -16,11 +17,15 @@ class Client
 
 		HttpRequest request;
 
-		Client(int fd) : fd (fd), offset(0) {} ;
+		Client(int fd, const config *cfg, int port) : fd(fd), offset(0), _config(cfg), _port(port) {} ;
 		~Client() { closeConnection(); }
 		
 		int handleClient();
 		void closeConnection();
+		
+	private:
+		const config *_config;
+		int _port;
 };
 
 #endif
