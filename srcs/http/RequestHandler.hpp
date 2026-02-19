@@ -18,7 +18,7 @@
 			RequestHandler();
 			~RequestHandler();
 			void handleRequest(const HttpRequest &request, Response &response, const config &config, int port);
-
+			std::string getTimeStamp() const;
 		private:
 			MimeType	_mimetypes;
 			const Server &selectServer(const config &config, int port, const std::string &host);

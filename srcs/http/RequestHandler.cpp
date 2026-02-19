@@ -4,6 +4,18 @@ RequestHandler::RequestHandler() {}
 
 RequestHandler::~RequestHandler() {}
 
+std::string RequestHandler::getTimeStamp() const
+{
+	time_t now = time(0);
+	struct tm datetime;
+	char buf[50];
+
+	datetime = *gmtime(&now);
+	// Format: <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
+	strftime(buf, sizeof(buf), "%Y_%m_%d_%H%M%S", &datetime);
+	return std::string(buf);
+}
+
 const Server &RequestHandler::selectServer(const config &config, int port, const std::string &host)
 {
 	const std::vector<Server> &servers = config.getServers();
@@ -205,8 +217,7 @@ void RequestHandler::handlePost(const HttpRequest &request, Response &response, 
 	// Créer le dossier upload s'il n'existe pas
 	if (!uploadPath.empty())
 	{
-		// Générer un nom de fichier unique (timestamp ou autre)
-		std::string filename = "uploaded_file";
+		std::string filename = getTimeStamp();
 		std::string uploadedFilePath = uploadPath + "/" + filename;
 
 		// Écrire le fichier
