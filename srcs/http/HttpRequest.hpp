@@ -32,11 +32,15 @@ class HttpRequest{
 	const std::string &getHttpVersion() const;
 	const std::string &getBody() const;
 
+	void setMethod(const std::string &method);
+	void setUri(const std::string &uri);
+	void setBody(const std::string &body);
+
 	std::string getHeaderValue(const std::string& name) const;
 
 	std::string toLower(const std::string &str) const;
 
-	bool parseRequest(const std::string &data);
+	bool parseRequest(std::string &buffer);
 
 	bool parseRequestLine(const std::string &line);
 	void parseHeader(const std::string &line);

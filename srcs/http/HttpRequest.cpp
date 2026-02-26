@@ -68,6 +68,18 @@ const std::string &HttpRequest::getBody() const{
 	return (_body);
 }
 
+void HttpRequest::setMethod(const std::string &method){
+	_method = method;
+}
+
+void HttpRequest::setUri(const std::string &uri){
+	_uri = uri;
+}
+
+void HttpRequest::setBody(const std::string &body){
+	_body = body;
+}
+
 std::string HttpRequest::getHeaderValue(const std::string& name) const{
 	std::map<std::string, std::string>::const_iterator it = _headers.find(name);
 	if (it != _headers.end())
@@ -99,13 +111,13 @@ size_t HttpRequest::getContentLength() const{
 	return length;
 }
 
-bool HttpRequest::parseRequest(const std::string &data){
+bool HttpRequest::parseRequest(std::string &buffer){
 	if (_requestComplete)
 		return true;
-	size_t headerEnd = data.find("\r\n\r\n");
+	size_t headerEnd = buffer.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)//npos = si on a rien trouver avec find et donc le header n'est pas complet
 		return false;
-	std::string headerPart = data.substr(0, headerEnd);
+	std::string headerPart = buffer.substr(0, headerEnd);
 	
 	//on traite seulement la partie header
 	std::istringstream stream(headerPart);
@@ -128,30 +140,38 @@ bool HttpRequest::parseRequest(const std::string &data){
 	{
 		if (!line.empty() && line[line.size() -1] == '\r')
 			line.erase(line.size() -1);
-		parseHeader(line);
+		if (!line.empty())
+			parseHeader(line);
 	}
 
 	//la partie body
 	size_t bodyStart = headerEnd + 4; // + 4 pour "\r\n\r\n"
+	size_t totalSize = bodyStart;
 
 	if (hasHeader("content-length"))
 	{
 		_expectedBodyLength = getContentLength();
-		if ((bodyStart + _expectedBodyLength) <= data.size())
-		{
-			_body = data.substr(bodyStart, _expectedBodyLength);
-			_requestComplete = true;
-		}
+		if (buffer.size() - bodyStart < _expectedBodyLength)
+			return false;
+		_body = buffer.substr(bodyStart, _expectedBodyLength);
+		totalSize += _expectedBodyLength;
+		_requestComplete = true;
+		//if ((bodyStart + _expectedBodyLength) <= buffer.size())
+		//{
+		//	_body = buffer.substr(bodyStart, _expectedBodyLength);
+		//	_requestComplete = true;
+		//}
 	}
 	else if (isChunked())
 	{
-			_requestComplete = parseChunkBody(data, bodyStart);
+		_requestComplete = parseChunkBody(buffer, bodyStart);
 	}
 	else
 	{
 		//cas pas de body
 		_requestComplete = true;
 	}
+	buffer.erase(0, totalSize);
 	return _requestComplete;
 }
 
