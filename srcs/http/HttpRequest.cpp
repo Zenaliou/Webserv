@@ -51,7 +51,7 @@
 //0\r\n
 //\r\n
 
-HttpRequest::HttpRequest(){}
+HttpRequest::HttpRequest() : _expectedBodyLength(0), _errorCode(0), _requestComplete(false) {}
 
 HttpRequest::~HttpRequest(){}
 
