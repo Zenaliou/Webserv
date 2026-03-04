@@ -76,8 +76,8 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 			handleGet(request, response, location);
 		else if (method == "POST")
 			handlePost(request, response, location);
-		// else if (method == "DELETE")
-		// 	handleDelete(request, response, server);
+		else if (method == "DELETE")
+			handleDelete(request, response, location);
 		else
 		{
 			response.setStatus(405, "Method Not Allowed");
@@ -101,15 +101,15 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 	std::string path = request.getUri();
 	if (path == "/")
 		path.append(location.getIndex());
-	
+
 	std::string fullPath = root + path;
-	
+
 	// Extraire l'extension
 	size_t dotPos = fullPath.find_last_of('.');
 	std::string extension;
 	if (dotPos != std::string::npos)
 		extension = fullPath.substr(dotPos);
-	
+
 	// Vérifier si c'est un script CGI
 	if (cgiExtensions.find(extension) != cgiExtensions.end())
 	{
@@ -117,14 +117,14 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 		cgi.setMethod("GET");
 		cgi.setScriptPath(fullPath);
 		cgi.setInterpreter(cgiExtensions.at(extension));
-		
+
 		std::string cgiOutput = cgi.execute();
 		response.setStatus(200, "OK");
 		response.setBody(cgiOutput);
 		response.addHeader("Content-Type", "text/html");
 		return;
 	}
-	
+
 	// Vérifier si le fichier existe
 	struct stat fileStat;
 	if (stat(fullPath.c_str(), &fileStat) != 0)
@@ -134,7 +134,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 		response.addHeader("Content-Type", "text/plain");
 		return;
 	}
-	
+
 	// Si c'est un dossier, chercher index.html
 	if (S_ISDIR(fileStat.st_mode))
 	{
@@ -148,7 +148,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 		}
 		fullPath = indexPath;
 	}
-	
+
 	// Lire le fichier
 	std::ifstream file(fullPath.c_str(), std::ios::in | std::ios::binary);
 	if (!file)
@@ -158,14 +158,14 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 		response.addHeader("Content-Type", "text/plain");
 		return;
 	}
-	
+
 	std::ostringstream buffer;
 	buffer << file.rdbuf();
 	file.close();
-	
+
 	response.setStatus(200, "OK");
 	response.setBody(buffer.str());
-	
+
 	// Déterminer le MIME type
 	std::string mime = _mimetypes.getMimeType(extension);
 	response.addHeader("Content-Type", mime);
@@ -242,8 +242,53 @@ void RequestHandler::handlePost(const HttpRequest &request, Response &response, 
 	response.addHeader("Content-Type", "text/plain");
 }
 
-// void RequestHandler::handleDelete(const HttpRequest &request, Response &response, const config &config)
-// {
+void RequestHandler::handleDelete(const HttpRequest &request, Response &response, const Location& location){
+	std::string path = request.getUri();//uri demander par le client dans sa requete
+	if (path.find(location.path) == 0)//location.path = chemin defini dans la config
+		path = path.substr(location.path.size());//si l'uri commence par le chemin defini dans la config, on enleve cette partie
+	std::string fullPath = location.getUploadPath();
+	fullPath += path;
 
-// }
+	struct stat statBuf;//structure qui va contenir les infos d'un fichier
+	//par ex : le type(fichier ou dossier), les permissions, la taille du fichier, la date de modif...
 
+	//stat() = fonction qui remplit la structure
+	if (stat(fullPath.c_str(), &statBuf) != 0)//le fichier n'existe pas ou on n'a pas acces ou erreur systeme
+	{
+		response.setStatus(404, "Not Found");
+		response.setBody("Error 404: File not found\n");
+		response.addHeader("Content-Type", "text/plain");
+		return;
+	}
+
+	//si c'est un repertoire et donc pas un fichier, on ne peut pas supprimer
+	if (S_ISDIR(statBuf.st_mode))
+	{
+		response.setStatus(403, "Forbidden");
+		response.setBody("Error 403: Forbidden, can not delete directories\n");
+		response.addHeader("Content-Type", "text/plain");
+		return;
+	}
+
+	//unlink() = supprime un fichier
+	if (unlink(fullPath.c_str()) == 0)
+	{
+		response.setStatus(204, "No Content");
+		response.setBody("");//contenu vide
+	}
+
+	//on doit choisir soit code 204 no content soit code 200 avec un body
+	//A FAIRE AJOUTER content_length et content-type
+	//if (unlink(fullPath.c_str()) == 0)
+	//{
+	//	response.setStatus(200, "OK");
+	//	response.setBody("File deleted\n");
+	//	response.addHeader("Content-Type", "text/plain");
+	//}
+	else
+	{
+		response.setStatus(500, "Internal server error");
+		response.setBody("Error 500: Could not delete file\n");
+		response.addHeader("Content-Type", "text/plain");
+	}
+}
