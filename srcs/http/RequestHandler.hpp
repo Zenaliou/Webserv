@@ -8,6 +8,7 @@
 #include "CGI.hpp"
 #include <iostream>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -25,7 +26,7 @@
 			const Location &selectLocation(const Server &server, const std::string &path);
 			void handleGet(const HttpRequest &request, Response &response, const Location &location);
 			void handlePost(const HttpRequest &request, Response &response, const Location &location);
-			// void handleDelete(const HttpRequest &request, Response &response, const config &config);
+			void handleDelete(const HttpRequest &request, Response &response, const Location &location);
 
 	};
 
