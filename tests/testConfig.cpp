@@ -1,5 +1,5 @@
 #include <iostream>
-#include "config.hpp"
+#include "../srcs/http/config.hpp"
 
 int main(int argc, char **argv)
 {

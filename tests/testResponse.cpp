@@ -1,6 +1,6 @@
-#include "HttpRequest.hpp"
-#include "Response.hpp"
-#include "RequestHandler.hpp"
+#include "../srcs/http/HttpRequest.hpp"
+#include "../srcs/http/Response.hpp"
+#include "../srcs/http/RequestHandler.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -22,7 +22,7 @@
 // 	{
 // 		std::cerr << " -> Exception:" << e.what() << std::endl;
 // 	}
-	
+
 // 	return (0);
 // }
 
@@ -41,7 +41,7 @@ int main()
 		std::cout << request.getUri() << std::endl;
 		std::cout << request.getHttpVersion() << std::endl;
 		std::cout << request.getBody() << std::endl;
-		
+
 		RequestHandler handler;
 		handler.handleRequest(request, response);
 		std::cout << std::endl;

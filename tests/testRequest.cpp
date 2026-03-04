@@ -1,5 +1,5 @@
 #include <iostream>
-#include "HttpRequest.hpp"
+#include "../srcs/http/HttpRequest.hpp"
 
 int main() {
     // Exemple de requête HTTP complète

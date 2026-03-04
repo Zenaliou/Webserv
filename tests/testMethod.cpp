@@ -2,8 +2,8 @@
 //#include <fstream>
 //#include <sys/stat.h>
 
-//#include "RequestHandler.hpp"
-//#include "Response.hpp"
+//#include "../srcs/http/RequestHandler.hpp"
+//#include "../srcs/http/Response.hpp"
 
 //// Petit helper pour créer un dossier si besoin
 //void createDirectory(const std::string &path)
@@ -107,9 +107,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "method.hpp"
-#include "Response.hpp"
-#include "HttpRequest.hpp"
+#include "../srcs/http/method.hpp"
+#include "../srcs/http/Response.hpp"
+#include "../srcs/http/HttpRequest.hpp"
 
 // Helper : créer dossier si inexistant
 void createDirectory(const std::string &path)

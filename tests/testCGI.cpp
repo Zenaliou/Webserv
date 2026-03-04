@@ -1,4 +1,4 @@
-#include "CGI.hpp"
+#include "../srcs/http/CGI.hpp"
 #include <string>
 
 int	main()
@@ -7,7 +7,6 @@ int	main()
 	cgi.setMethod("GET");
 	cgi.setInterpreter("/usr/bin/python3");
 	cgi.setScriptPath("../../www/cgi-bin/hello.py");
-	cgi.setQueryString("");
 	cgi.setBody("");
 
 	try
