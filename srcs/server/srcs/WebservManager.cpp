@@ -1,5 +1,14 @@
 #include "../inc/WebservManager.hpp"
 
+volatile sig_atomic_t g_running = 1;
+
+static void signalHandler(int sig)
+{
+	(void)sig;
+	g_running = 0;
+	std::cout << "\nShutting down..." << std::endl;
+}
+
 WebservManager::WebservManager(const config &cfg) : _config(&cfg)
 {
 	const std::vector<Server> &servers = cfg.getServers();
@@ -45,14 +54,19 @@ WebservManager::~WebservManager()
 
 void WebservManager::run()
 {
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+	
 	std::cout << "WebservManager starting main event loop..." << std::endl;
 	
-	while (true)
+	while (g_running)
 	{
 		// Wait for events on any monitored file descriptor
 		int ret = poll(&_pollfds[0], _pollfds.size(), -1);
 		if (ret < 0)
 		{
+			if (!g_running) // Interrupted by signal
+				break;
 			std::cerr << "poll() error" << std::endl;
 			break;
 		}
