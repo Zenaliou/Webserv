@@ -38,7 +38,7 @@ const Location &RequestHandler::selectLocation(const Server &server, const std::
 {
 	const std::vector<Location> &locations = server.locations;
 	size_t bestMatchIndex = 0;
-	size_t longestMatchDepth = 0;
+	size_t longestMatchLength = 0;
 	bool foundMatch = false;
 
 	// Chercher la location avec le chemin le plus precis correspondant au path
@@ -47,10 +47,9 @@ const Location &RequestHandler::selectLocation(const Server &server, const std::
 		const std::string &locPath = locations[i].getPath();
 		if (path.find(locPath) == 0)
 		{
-			size_t depth = std::count(locPath.begin(), locPath.end(), '/');
-			if (depth > longestMatchDepth)
+			if (locPath.length() > longestMatchLength)
 			{
-				longestMatchDepth = depth;
+				longestMatchLength = locPath.length();
 				bestMatchIndex = i;
 				foundMatch = true;
 			}
