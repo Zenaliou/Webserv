@@ -1,0 +1,2 @@
+➜  webserv_github git:(manu) ✗ printf 'Test POST Hello Webserv' | curl -X POST --data-binary @- http://localhost:8080/uploadsddssd
+File uploaded successfully
