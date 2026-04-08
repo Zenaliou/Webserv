@@ -16,12 +16,25 @@ std::string RequestHandler::getTimeStamp() const
 	return std::string(buf);
 }
 
+bool	matchServerName(const Server &server, const std::string &host)
+{
+	const	std::string server_name = server.getServerName();
+	if (server_name == host)
+	{
+		std::cout << "server_name: " << server_name << std::endl;
+		return (true);
+	}
+	return (false);
+}
+
 const Server &RequestHandler::selectServer(const config &config, int port, const std::string &host)
 {
+	std::cout << "host & port : " << host << " & " << port << std::endl;
 	const std::vector<Server> &servers = config.getServers();
 	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		if (it->getPort() == port && it->getHost() == host)
+		if (it->getPort() == port && matchServerName(*it, host))
+		// if (it->getPort() == port && it->getHost() == host)
 			return *it;
 	}
 	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
@@ -69,7 +82,7 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 {
 	try
 	{
-		const Server &server = selectServer(config, port, request.getHeaderValue("Host"));
+		const Server &server = selectServer(config, port, request.getHeaderValue("host"));
 		const Location &location = selectLocation(server, request.getUri());
 		const std::string &method = request.getMethod();
 		if (method == "GET")
