@@ -12,15 +12,16 @@ static void signalHandler(int sig)
 WebservManager::WebservManager(const config &cfg) : _config(&cfg)
 {
 	const std::vector<Server> &servers = cfg.getServers();
-	
 	// Create a ServerSocket for each server configuration
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
 		int port = servers[i].getPort();
 		std::cout << "Initializing server on port " << port << "..." << std::endl;
 		
-		ServerSocket *serverSocket = new ServerSocket(port, cfg);
-		_servers.push_back(serverSocket);
+		if (_port.find(port) == _port.end())
+		{
+			ServerSocket *serverSocket = new ServerSocket(port, cfg);
+			_servers.push_back(serverSocket);
 		
 		// Add server fd to pollfds
 		Pollfd p;
@@ -30,6 +31,12 @@ WebservManager::WebservManager(const config &cfg) : _config(&cfg)
 		
 		// Map server fd to ServerSocket
 		_serverFdMap[serverSocket->getFd()] = serverSocket;
+		_port[port] = true;
+		}
+		else
+		{
+			std::cout << "test" << port << "already" << std::endl;
+		}
 	}
 	
 	std::cout << "WebservManager initialized with " << _servers.size() << " server(s)" << std::endl;
