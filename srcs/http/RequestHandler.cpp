@@ -18,11 +18,14 @@ std::string RequestHandler::getTimeStamp() const
 
 bool	matchServerName(const Server &server, const std::string &host)
 {
-	const	std::string server_name = server.getServerName();
-	if (server_name == host)
+	const	std::vector<std::string> servers_name = server.getServerNames();
+	for (size_t i = 0; i < servers_name.size(); i++)
 	{
-		std::cout << "server_name: " << server_name << std::endl;
-		return (true);
+		if (servers_name[i] == host)
+		{
+			std::cout << "server_name: " << servers_name[i] << std::endl;
+			return (true);
+		}
 	}
 	return (false);
 }
