@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Upload</title>
+
+        <style>
+            body {
+            margin: 0;
+            background: rgba(0, 21, 255, 0.557);
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+            justify-content: center;
+            /* centre horizontalement (gauche/droite) */
+            align-items: center;
+            /* centre verticalement (haut/bas) */
+            text-align: center;
+            height: 100vh;
+            }
+
+            .homepage a {
+            display: inline-block;
+            color: white;
+            background: rgba(255, 166, 0, 0.678);
+            margin: 10px;
+            /* ajoute de l'espace autour du bouton, 10px sur tous les cotes */
+            padding: 12px 20px;
+            /* ajoute de l'espace a l'interieur des boutons, 12px en haut/bas, 20px sur la gauche/droite */
+            text-decoration: none;
+            /* enleve le soulignement des liens car pas defaut souligner */
+            border-radius: 8px;
+            /* arrondit les coins, 0px = carre, 8px = un peu arrondi, 50% = rond */
+            }
+
+            footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            }
+
+        </style>
+
+    </head>
+      <body>
+    <h1>Upload file</h1>
+    <form action="/html/uploads" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <!-- avec required, on peut pas submit sans fichier -->
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+    <div class="homepage">
+      <a href="/index.html">Home page</a>
+    </div>
+
+  <footer>
+    <p>Made by best team ever</p>
+  </footer>
+
+  </body>
+</html>

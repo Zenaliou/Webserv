@@ -1,10 +1,102 @@
+<!DOCTYPE html>
 <html lang="fr">
   <head>
-    <title>Titre du document</title>
+    <meta charset="UTF-8">
+    <title>Home Webserv</title>
+    <!-- <link rel="stylesheet" href="style.css">
+    lien vers un style sur une page css utiliser pour plusieurs pages html -->
+
+  <style>
+    body{
+      margin: 0;
+      background: rgba(0, 21, 255, 0.557);
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      justify-content: center;
+      /* centre horizontalement (gauche/droite) */
+      align-items: center;
+      /* centre verticalement (haut/bas) */
+      text-align: center;
+      height: 100vh;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      opacity: 0.5;
+    }
+
+    .links a {
+      display: inline-block;
+      color: white;
+      background: rgba(255, 166, 0, 0.678);
+      margin: 10px;
+      /* ajoute de l'espace autour du bouton, 10px sur tous les cotes */
+      padding: 12px 20px;
+      /* ajoute de l'espace a l'interieur des boutons, 12px en haut/bas, 20px sur la gauche/droite */
+      text-decoration: none;
+      /* enleve le soulignement des liens car pas defaut souligner */
+      border-radius: 8px;
+      /* arrondit les coins, 0px = carre, 8px = un peu arrondi, 50% = rond */
+    }
+  /* table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse; si on ecrit pas ca, ca va faire une bordure double par defaut
+  }
+  th, td {
+    padding: 15px; pour mettre des espaces haut/bas dans les cases du tableau
+  }
+ .my-group{
+  background-color: red;
+ } selecteur de class avec un point
+  #myHeader {
+    color: black;
+    text-align: center;
+    padding: 40px;
+  } quand c'est avec id */
+ </style>
   </head>
   <body>
+    <h1>Welcome to our Webserv</h1>
+    <p>Ready to test</p>
+    <div class="links">
+      <a href="/html/get.html">Get</a>
+      <a href="/html/upload.html">Upload</a>
+      <a href="/uploads">Delete</a>
+      <a href="/cgi-bin/hello.py">CGI</a>
+    </div>
+
+  <footer>
+    <p>Made by best team ever</p>
+  </footer>
+
+    <!-- <h1 id="myHeader">my header</h1>
     <p>
 		Hello World.
+    <a href="https://www.exemple.com/html">visit exemple</a>
+    href pour mettre le lien vers une adresse 
+    <table>
+      <tr>
+        <th>colone1</th>
+        <th>colone2</th>
+      </tr>
+      <tr>
+        <td>l1c1</td>
+        <td>l1c2</td>
+      </tr>
+      <tr>
+        <td>l2c1</td>\
+        <td>l2c2</td>
+      </tr>
+    </table>
+    table pour faire un tableau
+    tr pour faire des lignes
+    th pour mettre des entetes de tableau qui sera en gras et centrer par defaut
+    td pour mettre des donnees
+    les bordures du tableau n'apparait pas par defaut, on doit preciser avec le css
     </p>
+    <p class="my-group">this is a paragraph</p> -->
   </body>
 </html>
+
+<!-- sur javascript, on peut acceder a un element avec getElementById("myHeader") -->
