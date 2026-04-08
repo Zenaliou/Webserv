@@ -29,7 +29,7 @@ struct Location {
 struct Server {
 	std::string host;
 	int port;
-	std::string serverName;
+	std::vector<std::string> serverNames;
 	size_t clientMaxBodySize;
 	std::map<int, std::string> errorPages;
 	std::string root;
@@ -42,7 +42,7 @@ struct Server {
 	//on initialise ces 4 valeurs car le reste vide par defaut
 
 	const std::string &getHost() const{return host;}
-	const std::string &getServerName() const{return serverName;}
+	const std::vector<std::string> &getServerNames() const{return serverNames;}
 	int getPort() const{return port;}
 };
 class config{

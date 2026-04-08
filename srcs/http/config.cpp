@@ -112,7 +112,13 @@ void config::parseServer(std::ifstream &file, Server& server, bool bracket){
 		}
 
 		else if (directive == "server_name" && tokens.size() >= 2)
-			server.serverName = tokens[1];
+		{
+			for (size_t i = 1; i < tokens.size(); i++)
+			{
+				server.serverNames.push_back(tokens[i]);
+			}
+		}
+			
 		else if (directive == "error_page" && tokens.size() >= 3)
 		{
 			try{
