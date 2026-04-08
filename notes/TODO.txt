@@ -1,2 +1,10 @@
 ➜  webserv_github git:(manu) ✗ printf 'Test POST Hello Webserv' | curl -X POST --data-binary @- http://localhost:8080/uploadsddssd
 File uploaded successfully
+
+Utiliser server_name dans RequestHandler -> selectServer
+
+Relier error 404 (utiliser error_page)
+client_max_body_size
+
+UNKNOWN method -> boucle infinie
+
