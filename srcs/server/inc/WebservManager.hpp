@@ -25,6 +25,7 @@ class WebservManager
 		std::vector<Pollfd> _pollfds;
 		std::map<int, Client*> _clients;
 		std::map<int, ServerSocket*> _serverFdMap;
+		std::map <int, bool> _port;
 		
 		void acceptClient(ServerSocket *server);
 		void handleClient(int client_fd);
