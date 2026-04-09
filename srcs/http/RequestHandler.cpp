@@ -61,7 +61,11 @@ const Location &RequestHandler::selectLocation(const Server &server, const std::
 	for (size_t i = 0; i < locations.size(); ++i)
 	{
 		const std::string &locPath = locations[i].getPath();
-		if (path.find(locPath) == 0)
+
+		if (path == locations[i].getPath())
+			return (locations[i]);
+
+		else if (path.size() > locPath.size() && path.compare(0, locPath.size(), locPath) == 0 && path[locPath.size()] == '/')
 		{
 			if (locPath.length() > longestMatchLength)
 			{
@@ -73,6 +77,7 @@ const Location &RequestHandler::selectLocation(const Server &server, const std::
 	}
 	if (foundMatch)
 		return locations[bestMatchIndex];
+
 	for (size_t i = 0; i < locations.size(); ++i)
 	{
 		if (locations[i].getPath() == "/")
