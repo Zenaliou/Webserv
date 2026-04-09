@@ -45,6 +45,18 @@ int Client::handleClient()
 				request = HttpRequest(); // reset
 			}
 		}
+		else
+		{
+			Response response;
+			response.setStatus(400, "Bad Request\n");
+			response.setBody("Error 400: Bad request");
+			buffer_out = response.generateResponse();
+			send(fd, buffer_out.c_str(), buffer_out.size(), 0);
+			
+			buffer_in.clear();
+			request = HttpRequest();
+			return (0);
+		}
 		return (1); // keep connection alive
 	}
 
