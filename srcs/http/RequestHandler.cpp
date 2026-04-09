@@ -150,9 +150,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 	struct stat fileStat;
 	if (stat(fullPath.c_str(), &fileStat) != 0)
 	{
-		response.setStatus(404, "Not Found");
-		response.setBody("404 Not Found\n");
-		response.addHeader("Content-Type", "text/plain");
+		setErrorResponse(response, 404, "Not Found", "www/html/Error404.html");
 		return;
 	}
 
@@ -276,9 +274,7 @@ void RequestHandler::handleDelete(const HttpRequest &request, Response &response
 	//stat() = fonction qui remplit la structure
 	if (stat(fullPath.c_str(), &statBuf) != 0)//le fichier n'existe pas ou on n'a pas acces ou erreur systeme
 	{
-		response.setStatus(404, "Not Found");
-		response.setBody("Error 404: File not found\n");
-		response.addHeader("Content-Type", "text/plain");
+		setErrorResponse(response, 404, "Not Found", "www/html/Error404.html");
 		return;
 	}
 
@@ -312,4 +308,22 @@ void RequestHandler::handleDelete(const HttpRequest &request, Response &response
 		response.setBody("Error 500: Could not delete file\n");
 		response.addHeader("Content-Type", "text/plain");
 	}
+}
+
+void RequestHandler::setErrorResponse(Response &response, int code, const std::string &reason_phrase, const std::string &file)
+{
+	response.setStatus(code, reason_phrase);
+	response.setBody(loadFile(file));
+	response.addHeader("Content-Type", "text/html");
+}
+
+std::string loadFile(const std::string &path)
+{
+	std::ifstream file(path.c_str());
+	if (!file.is_open())
+		return "<h1>Erreur: fichier introuvable</h1>";
+
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	return buffer.str();
 }

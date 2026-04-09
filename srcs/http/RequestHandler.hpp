@@ -27,7 +27,10 @@
 			void handleGet(const HttpRequest &request, Response &response, const Location &location);
 			void handlePost(const HttpRequest &request, Response &response, const Location &location);
 			void handleDelete(const HttpRequest &request, Response &response, const Location &location);
+			void setErrorResponse(Response &response, int code, const std::string &reason_phrase, const std::string &file);
 
 	};
+
+	std::string loadFile(const std::string &path);
 
 #endif

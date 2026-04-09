@@ -27,6 +27,7 @@ WebservManager::WebservManager(const config &cfg) : _config(&cfg)
 		Pollfd p;
 		p.fd = serverSocket->getFd();
 		p.events = POLLIN;
+		p.revents = 0;
 		_pollfds.push_back(p);
 		
 		// Map server fd to ServerSocket
@@ -79,7 +80,7 @@ void WebservManager::run()
 		}
 		
 		// Check each fd for events
-		for (size_t i = 0; i < _pollfds.size(); i++)
+			for (size_t i = 0; i < _pollfds.size(); i++)
 		{
 			if (_pollfds[i].revents == 0) // no event on this fd
 				continue;
@@ -123,6 +124,7 @@ void WebservManager::acceptClient(ServerSocket *server)
 	Pollfd p;
 	p.fd = client_fd;
 	p.events = POLLIN;
+	p.revents = 0;
 	_pollfds.push_back(p);
 	
 	std::cout << "New client connected on port " << server->getPort() 
