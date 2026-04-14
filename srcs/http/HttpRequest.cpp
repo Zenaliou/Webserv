@@ -68,6 +68,10 @@ const std::string &HttpRequest::getBody() const{
 	return (_body);
 }
 
+const int HttpRequest::getErrorCode() const{
+	return (_errorCode);
+}
+
 void HttpRequest::setMethod(const std::string &method){
 	_method = method;
 }
@@ -186,7 +190,7 @@ bool HttpRequest::parseRequestLine(const std::string &line){
 	//verifie la methode
 	for (size_t i = 0; i < _method.size(); i++)
 		_method[i] = std::toupper(_method[i]);
-	if (_method != "GET" && _method != "POST" && _method != "DELETE")
+	if (_method != "GET" && _method != "POST" && _method != "DELETE")//! check avec les methodes autorisees pour differencier 405 (Not allowed) et 501 (Not implemented)
 	{
 		_errorCode = 405; //405 = method not allowed
 		return false;
