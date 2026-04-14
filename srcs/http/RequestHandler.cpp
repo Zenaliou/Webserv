@@ -90,6 +90,12 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 {
 	try
 	{
+		if (request.getErrorCode() != 0)
+		{
+			int	errorCode = request.getErrorCode();
+			handleRequestError(request, response, errorCode);
+			return ;
+		}
 		const Server &server = selectServer(config, port, request.getHeaderValue("host"));
 		const Location &location = selectLocation(server, request.getUri());
 		const std::string &method = request.getMethod();
@@ -111,6 +117,22 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 		response.setStatus(500, "Internal Server Error");
 		response.setBody("500 Internal Server Error\n");
 		response.addHeader("Content-Type", "text/plain");
+	}
+}
+
+void RequestHandler::handleRequestError(const HttpRequest &request, Response &response, int errorCode)
+{
+	switch (errorCode)
+	{
+		case 405:
+			setErrorResponseTemp(response, errorCode, "Method Not Allowed", "405 Method Not Allowed\n");
+			break;
+		case 500:
+			setErrorResponseTemp(response, errorCode, "Internal Server Error", "500 Internal Server Error\n");
+			break;
+		default:
+			setErrorResponseTemp(response, errorCode, "Bad Request", "400 Bad Request\n");
+			break;
 	}
 }
 
@@ -315,6 +337,13 @@ void RequestHandler::setErrorResponse(Response &response, int code, const std::s
 	response.setStatus(code, reason_phrase);
 	response.setBody(loadFile(file));
 	response.addHeader("Content-Type", "text/html");
+}
+
+void RequestHandler::setErrorResponseTemp(Response &response, int code, const std::string &reason_phrase, const std::string &body)
+{
+	response.setStatus(code, reason_phrase);
+	response.setBody(body + "\n");
+	response.addHeader("Content-Type", "text/plain");
 }
 
 std::string loadFile(const std::string &path)

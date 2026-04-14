@@ -25,7 +25,7 @@ class HttpRequest{
 	const std::string &getUri() const;
 	const std::string &getHttpVersion() const;
 	const std::string &getBody() const;
-	const int getErrorCode() const;
+	int getErrorCode() const;
 
 	void setMethod(const std::string &method);
 	void setUri(const std::string &uri);
