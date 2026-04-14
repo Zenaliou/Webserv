@@ -255,8 +255,9 @@ bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
 		//lire la taille du chunk en hexadecimale
 		size_t lineEnd = data.find("\r\n", pos);
 		if (lineEnd == std::string::npos)
-			return false;	//pas assez de donnees pour lire la taille du chunk
+			// return false;	//pas assez de donnees pour lire la taille du chunk
 							// ? Requete coupee ou Requete invalide (400)
+			continue ;
 		std::string chunkSizeLine = data.substr(pos, lineEnd - pos);
 
 		//si apres la taille hexa, il y a une extension apres ;
@@ -294,8 +295,9 @@ bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
 
 		if (pos + chunkSize + 2 > data.size())
 		{
-			return false;	//pas assez de donnees pour lire le chunk complet
-							//! NE pas renvoyer un code d'erreur
+			// return false;	//pas assez de donnees pour lire le chunk complet
+			// 				//! NE pas renvoyer un code d'erreur
+			continue ;
 		}
 
 		_body.append(data, pos, chunkSize);
@@ -307,5 +309,6 @@ bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
 		else
 			pos += chunkSize + 2; //saute le chunk et le "\r\n"
 	}
+	_errorCode = 400;
 	return false;
 }
