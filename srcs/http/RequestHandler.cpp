@@ -120,7 +120,7 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 	}
 }
 
-void RequestHandler::handleRequestError(const HttpRequest &request, Response &response, int errorCode)
+void RequestHandler::handleRequestError(Response &response, int errorCode)
 {
 	switch (errorCode)
 	{

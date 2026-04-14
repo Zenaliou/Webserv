@@ -29,7 +29,7 @@
 			void handleDelete(const HttpRequest &request, Response &response, const Location &location);
 			void setErrorResponse(Response &response, int code, const std::string &reason_phrase, const std::string &file);
 			void setErrorResponseTemp(Response &response, int code, const std::string &reason_phrase, const std::string &body);
-			void handleRequestError(const HttpRequest &request, Response &response, int errorCode);
+			void handleRequestError(Response &response, int errorCode);
 	};
 
 	std::string loadFile(const std::string &path);
