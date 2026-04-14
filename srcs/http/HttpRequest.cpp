@@ -68,7 +68,7 @@ const std::string &HttpRequest::getBody() const{
 	return (_body);
 }
 
-const int HttpRequest::getErrorCode() const{
+int HttpRequest::getErrorCode() const{
 	return (_errorCode);
 }
 
@@ -127,7 +127,8 @@ void HttpRequest::parseRequest(std::string &buffer){
 	//on traite seulement la partie header
 	std::istringstream stream(headerPart);
 	std::string line;
-	
+	std::getline(stream, line);
+
 	//chaque ligne du header se termine par "\r\n"
 	//et getline va stocker dans line chaque ligne de stream jusqu'a "\n"
 	//donc on va supprimer le "\r" qui reste
