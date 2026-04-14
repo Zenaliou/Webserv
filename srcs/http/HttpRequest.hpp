@@ -16,21 +16,16 @@ class HttpRequest{
 	size_t _expectedBodyLength;
 
 	int _errorCode;
-	bool _requestComplete;
 
 	public:
 	HttpRequest();
-	//HttpRequest(const HttpRequest& other);
 	~HttpRequest();
-
-	//HttpRequest& operator= (const HttpRequest& other);
-
-	bool isComplete() const;
 
 	const std::string &getMethod() const;
 	const std::string &getUri() const;
 	const std::string &getHttpVersion() const;
 	const std::string &getBody() const;
+	const int getErrorCode() const;
 
 	void setMethod(const std::string &method);
 	void setUri(const std::string &uri);
@@ -40,11 +35,9 @@ class HttpRequest{
 
 	std::string toLower(const std::string &str) const;
 
-	bool parseRequest(std::string &buffer);
-
+	void parseRequest(std::string &buffer);
 	bool parseRequestLine(const std::string &line);
 	void parseHeader(const std::string &line);
-
 
 	size_t getContentLength() const;
 	bool hasHeader(const std::string &name) const;
