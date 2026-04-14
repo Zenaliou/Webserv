@@ -51,7 +51,7 @@
 //0\r\n
 //\r\n
 
-HttpRequest::HttpRequest() : _expectedBodyLength(0), _errorCode(0), _requestComplete(false) {}
+HttpRequest::HttpRequest() : _expectedBodyLength(0), _errorCode(0) {}
 
 HttpRequest::~HttpRequest(){}
 
@@ -115,21 +115,19 @@ size_t HttpRequest::getContentLength() const{
 	return length;
 }
 
-bool HttpRequest::parseRequest(std::string &buffer){
-	if (_requestComplete)
-		return true;
+void HttpRequest::parseRequest(std::string &buffer){
 	size_t headerEnd = buffer.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)//npos = si on a rien trouver avec find et donc le header n'est pas complet
-		return false;
+	{
+		_errorCode = 400; //Bad Request
+		return ;
+	}
 	std::string headerPart = buffer.substr(0, headerEnd);
 	
 	//on traite seulement la partie header
 	std::istringstream stream(headerPart);
 	std::string line;
-	if (!std::getline(stream, line))
-	{
-		return false;
-	}
+	
 	//chaque ligne du header se termine par "\r\n"
 	//et getline va stocker dans line chaque ligne de stream jusqu'a "\n"
 	//donc on va supprimer le "\r" qui reste
@@ -137,7 +135,7 @@ bool HttpRequest::parseRequest(std::string &buffer){
 		line.erase(line.size() -1);
 	//pour la 1ere ligne du header
 	if (!parseRequestLine(line))
-		return false;
+		return ;
 	
 	//pour les autres lignes du header
 	while (std::getline(stream, line))
@@ -156,27 +154,22 @@ bool HttpRequest::parseRequest(std::string &buffer){
 	{
 		_expectedBodyLength = getContentLength();
 		if (buffer.size() - bodyStart < _expectedBodyLength)
-			return false;
+		{
+			_errorCode = 400;
+			return ;
+		}
 		_body = buffer.substr(bodyStart, _expectedBodyLength);
 		totalSize += _expectedBodyLength;
-		_requestComplete = true;
 		//if ((bodyStart + _expectedBodyLength) <= buffer.size())
 		//{
 		//	_body = buffer.substr(bodyStart, _expectedBodyLength);
-		//	_requestComplete = true;
 		//}
 	}
 	else if (isChunked())
 	{
-		_requestComplete = parseChunkBody(buffer, bodyStart);
+		if (!parseChunkBody(buffer, bodyStart))
+			return ;
 	}
-	else
-	{
-		//cas pas de body
-		_requestComplete = true;
-	}
-	buffer.erase(0, totalSize);
-	return _requestComplete;
 }
 
 bool HttpRequest::parseRequestLine(const std::string &line){
@@ -233,7 +226,6 @@ void HttpRequest::parseHeader(const std::string &line){
 		//donc si index 4, nbre de caractere 5
 	}
 
-
 	//stock en minuscule pour faciliter la recherche
 	_headers[toLower(name)] = value;
 }
@@ -252,11 +244,9 @@ bool HttpRequest::isChunked() const{
 	return false;
 }
 
-bool HttpRequest::isComplete() const{
-	return _requestComplete;
-}
-
 bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
+// ! Recheck des return false(), il faut bien differencier une requete incomplete (attente) et une requete erronee (Bad request)
+// ? Peut-etre utiliser une variable _chunkBodyComplete
 	size_t pos = bodyStart;
 	_body.clear();
 
@@ -265,8 +255,8 @@ bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
 		//lire la taille du chunk en hexadecimale
 		size_t lineEnd = data.find("\r\n", pos);
 		if (lineEnd == std::string::npos)
-			return false; //pas assez de donnees pour lire la taille du chunk
-		
+			return false;	//pas assez de donnees pour lire la taille du chunk
+							// ? Requete coupee ou Requete invalide (400)
 		std::string chunkSizeLine = data.substr(pos, lineEnd - pos);
 
 		//si apres la taille hexa, il y a une extension apres ;
@@ -282,7 +272,10 @@ bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
 		iss >> std::hex >> chunkSize;//converti hexa en decimal
 
 		if (iss.fail())
+		{
+			_errorCode = 400;
 			return false; //erreur de conversion
+		}
 
 		pos = lineEnd + 2;//saute "\r\n"
 
@@ -301,11 +294,18 @@ bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
 
 		if (pos + chunkSize + 2 > data.size())
 		{
-			return false; //pas assez de donnees pour lire le chunk complet
+			return false;	//pas assez de donnees pour lire le chunk complet
+							//! NE pas renvoyer un code d'erreur
 		}
 
 		_body.append(data, pos, chunkSize);
-		pos += chunkSize + 2; //saute le chunk et le "\r\n"
+		if (data.substr(pos + chunkSize, 2) != "\r\n")
+		{
+			_errorCode = 400;
+			return false;
+		}
+		else
+			pos += chunkSize + 2; //saute le chunk et le "\r\n"
 	}
 	return false;
 }
