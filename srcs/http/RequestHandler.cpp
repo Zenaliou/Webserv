@@ -127,8 +127,8 @@ void RequestHandler::handleRequestError(const HttpRequest &request, Response &re
 		case 405:
 			setErrorResponseTemp(response, errorCode, "Method Not Allowed", "405 Method Not Allowed\n");
 			break;
-		case 500:
-			setErrorResponseTemp(response, errorCode, "Internal Server Error", "500 Internal Server Error\n");
+		case 505:
+			setErrorResponseTemp(response, errorCode, "HTTP Version Not Supported", "505 HTTP Version Not Supported\n");
 			break;
 		default:
 			setErrorResponseTemp(response, errorCode, "Bad Request", "400 Bad Request\n");
