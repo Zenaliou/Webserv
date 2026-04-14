@@ -93,7 +93,7 @@ void RequestHandler::handleRequest(const HttpRequest &request, Response &respons
 		if (request.getErrorCode() != 0)
 		{
 			int	errorCode = request.getErrorCode();
-			handleRequestError(request, response, errorCode);
+			handleRequestError(response, errorCode);
 			return ;
 		}
 		const Server &server = selectServer(config, port, request.getHeaderValue("host"));
