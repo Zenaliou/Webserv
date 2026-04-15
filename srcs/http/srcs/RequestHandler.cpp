@@ -144,6 +144,46 @@ void RequestHandler::handleGet(const RequestParser &request, Response &response,
 	response.addHeader("Content-Type", mime);
 }
 
+static bool extractFileFromMultipart(const std::string &body, const std::string &boundary, std::string &filename, std::string &filecontent)
+{
+	size_t pos = body.find("Content-Disposition:");
+	if (pos == std::string::npos)
+		return (false);
+
+	size_t filenamePos = body.find("filename=\"", pos);
+	if (filenamePos == std::string::npos)
+		return (false);
+	filenamePos += 10;
+	size_t filenameEnd = body.find("\"", filenamePos);
+	if (filenameEnd == std::string::npos)
+		return (false);
+
+	filename = body.substr(filenamePos, filenameEnd - filenamePos);
+	if (filename.empty())
+		return (false);
+
+	size_t contentStart = body.find("\r\n\r\n", pos);
+	if (contentStart == std::string::npos)
+		return (false);
+	contentStart += 4;
+
+	std::string boundaryEnd = "\r\n--" + boundary;
+	size_t contentEnd = body.find(boundaryEnd, contentStart);
+	if (contentEnd == std::string::npos)
+		return (false);
+
+	filecontent = body.substr(contentStart, contentEnd - contentStart);
+	return (true);
+}
+
+static std::string getFileExtension(const std::string &filename)
+{
+	size_t dotPos = filename.find_last_of('.');
+	if (dotPos != std::string::npos && dotPos < filename.length() -1)
+		return (filename.substr(dotPos));
+	return ("");
+}
+
 void RequestHandler::handlePost(const RequestParser &request, Response &response, const Location &location)
 {
 	std::string root = location.getRoot();
@@ -156,12 +196,13 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 	// Extraire l'extension du fichier
 	size_t dotPos = fullPath.find_last_of('.');
 	std::string extension;
-	if (dotPos != std::string::npos)
+	if (dotPos != std::string::npos && dotPos != 0)
 		extension = fullPath.substr(dotPos);
+	else
+		extension = "";
 
 	const std::string &body = request.getBody();
 
-	// Cas 1 : Script CGI POST
 	if (cgiExtensions.find(extension) != cgiExtensions.end())
 	{
 		CGI cgi;
@@ -177,7 +218,6 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 		return;
 	}
 
-	// Cas 2 : Upload de fichier
 	if (body.empty())
 	{
 		response.setStatus(400, "Bad Request");
@@ -186,13 +226,34 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 		return;
 	}
 
-	// Créer le dossier upload s'il n'existe pas
 	if (!uploadPath.empty())
 	{
+		std::string originalFilename;
+		std::string fileContent = body;
+
+		std::string contentType = request.getHeaderValue("content-type");
+		size_t boundaryPos = contentType.find("boundary=");
+
+		if (boundaryPos != std::string::npos)
+		{
+			std::string boundary = contentType.substr(boundaryPos + 9);
+			if (!boundary.empty() && boundary[0] == '"')
+				boundary = boundary.substr(1, boundary.length() - 2);
+			if (!extractFileFromMultipart(body, boundary, originalFilename, fileContent))
+				originalFilename = "";
+		}
+
 		std::string filename = getTimeStamp();
 		std::string uploadedFilePath = uploadPath + "/" + filename;
+		if (!originalFilename.empty())
+		{
+			std::string ext = getFileExtension(originalFilename);
+			if (!ext.empty())
+				uploadedFilePath += ext;
+		}
 
-		// Écrire le fichier
+		std::cout << uploadedFilePath << std::endl;
+
 		std::ofstream outFile(uploadedFilePath.c_str(), std::ios::out | std::ios::binary);
 		if (!outFile)
 		{
@@ -208,8 +269,6 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 		response.addHeader("Content-Type", "text/plain");
 		return;
 	}
-
-	// Cas 3 : Pas de destination d'upload
 	response.setStatus(405, "Method Not Allowed");
 	response.setBody("405 POST not allowed for this location\n");
 	response.addHeader("Content-Type", "text/plain");
