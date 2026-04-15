@@ -1,4 +1,4 @@
-#include "../srcs/http/HttpRequest.hpp"
+#include "../srcs/http/RequestParser.hpp"
 #include "../srcs/http/Response.hpp"
 #include "../srcs/http/RequestHandler.hpp"
 #include <iostream>
@@ -31,7 +31,7 @@ int main()
 	std::string rawRequest =
 		"GET /html/index.html HTTP/1.1\r\nHost: localhost\r\n\r\n";
 
-	HttpRequest request;
+	RequestParser request;
 	request.parseRequest(rawRequest);
 	if (request.isComplete())
 	{

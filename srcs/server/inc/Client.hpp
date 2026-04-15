@@ -2,7 +2,7 @@
 #define CLIENT_HPP
 
 #include "Librairy.hpp"
-#include "../../http/inc/HttpRequest.hpp"
+#include "../../http/inc/RequestParser.hpp"
 #include "../../http/inc/Response.hpp"
 #include "../../http/inc/RequestHandler.hpp"
 #include "../../http/inc/config.hpp"
@@ -15,7 +15,7 @@ class Client
 		std::string buffer_out;
 		size_t		offset;
 
-		HttpRequest request;
+		RequestParser request;
 
 		Client(int fd, const config *cfg, int port) : fd(fd), offset(0), _config(cfg), _port(port) {} ;
 		~Client() { closeConnection(); }

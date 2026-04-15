@@ -67,7 +67,7 @@
 //        // ===============================
 //        // 3️⃣ TEST GET
 //        // ===============================
-//        HttpRequest getReq;
+//        RequestParser getReq;
 //        Response getRes;
 
 //        getReq.setMethod("GET");
@@ -82,7 +82,7 @@
 //        // ===============================
 //        // 4️⃣ TEST POST (upload)
 //        // ===============================
-//        HttpRequest postReq;
+//        RequestParser postReq;
 //        Response postRes;
 
 //        postReq.setMethod("POST");
@@ -109,7 +109,7 @@
 
 #include "../srcs/http/method.hpp"
 #include "../srcs/http/Response.hpp"
-#include "../srcs/http/HttpRequest.hpp"
+#include "../srcs/http/RequestParser.hpp"
 
 // Helper : créer dossier si inexistant
 void createDirectory(const std::string &path)
@@ -153,7 +153,7 @@ int main()
         // ============================
         // 3️⃣ Créer requête DELETE
         // ============================
-        HttpRequest request;
+        RequestParser request;
         request.setMethod("DELETE");
         request.setUri("/test.txt");   // On veut supprimer ce fichier
         request.setBody("");

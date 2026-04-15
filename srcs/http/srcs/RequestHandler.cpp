@@ -86,7 +86,7 @@ const Location &RequestHandler::selectLocation(const Server &server, const std::
 	throw std::runtime_error("No location configuration found");
 }
 
-void RequestHandler::handleRequest(const HttpRequest &request, Response &response, const config &config, int port)
+void RequestHandler::handleRequest(const RequestParser &request, Response &response, const config &config, int port)
 {
 	try
 	{
@@ -136,7 +136,7 @@ void RequestHandler::handleRequestError(Response &response, int errorCode)
 	}
 }
 
-void RequestHandler::handleGet(const HttpRequest &request, Response &response, const Location &location)
+void RequestHandler::handleGet(const RequestParser &request, Response &response, const Location &location)
 {
 	std::string root = location.getRoot();
 	const std::map<std::string, std::string> &cgiExtensions = location.getCgiExtensions();
@@ -212,7 +212,7 @@ void RequestHandler::handleGet(const HttpRequest &request, Response &response, c
 	response.addHeader("Content-Type", mime);
 }
 
-void RequestHandler::handlePost(const HttpRequest &request, Response &response, const Location &location)
+void RequestHandler::handlePost(const RequestParser &request, Response &response, const Location &location)
 {
 	std::string root = location.getRoot();
 	std::string uploadPath = location.getUploadPath();
@@ -283,7 +283,7 @@ void RequestHandler::handlePost(const HttpRequest &request, Response &response, 
 	response.addHeader("Content-Type", "text/plain");
 }
 
-void RequestHandler::handleDelete(const HttpRequest &request, Response &response, const Location& location){
+void RequestHandler::handleDelete(const RequestParser &request, Response &response, const Location& location){
 	std::string path = request.getUri();//uri demander par le client dans sa requete
 	if (path.find(location.path) == 0)//location.path = chemin defini dans la config
 		path = path.substr(location.path.size());//si l'uri commence par le chemin defini dans la config, on enleve cette partie
