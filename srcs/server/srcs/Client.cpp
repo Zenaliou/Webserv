@@ -24,9 +24,7 @@ int Client::handleClient()
 
 	if (bytes_read > 0)
 	{
-		buffer[bytes_read] = '\0';  // null-terminate for string operations
-		buffer_in += buffer;         // accumulate data
-		
+		buffer_in.append(buffer, bytes_read);
 		// Verifier si on a au moins les headers complets
 		size_t headerEnd = buffer_in.find("\r\n\r\n");
 		if (headerEnd == std::string::npos)
