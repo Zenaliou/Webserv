@@ -1,4 +1,4 @@
-#include "../http/HttpRequest.hpp"
+#include "../inc/HttpRequest.hpp"
 
 //exemple a quoi ressemble une requete
 //arrive par recv() en plusieurs morceaux par flux

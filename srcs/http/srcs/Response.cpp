@@ -1,4 +1,4 @@
-#include "Response.hpp"
+#include "../inc/Response.hpp"
 
 Response::Response() : _statusCode(200), _reasonPhrase("OK")
 {

@@ -1,4 +1,4 @@
-#include "MimeType.hpp"
+#include "../inc/MimeType.hpp"
 
 MimeType::MimeType()
 {

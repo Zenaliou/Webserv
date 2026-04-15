@@ -1,4 +1,4 @@
-#include "CGI.hpp"
+#include "../inc/CGI.hpp"
 
 CGI::CGI() {}
 CGI::~CGI() {}
