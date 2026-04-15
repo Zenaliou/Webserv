@@ -1,7 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "../../Webserv.hpp"
+#include "Webserv.hpp"
 #include "server/inc/Client.hpp"
 #include "../../http/inc/config.hpp"
 
