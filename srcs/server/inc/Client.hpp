@@ -2,10 +2,10 @@
 #define CLIENT_HPP
 
 #include "Librairy.hpp"
-#include "../../http/HttpRequest.hpp"
-#include "../../http/Response.hpp"
-#include "../../http/RequestHandler.hpp"
-#include "../../http/config.hpp"
+#include "../../http/inc/HttpRequest.hpp"
+#include "../../http/inc/Response.hpp"
+#include "../../http/inc/RequestHandler.hpp"
+#include "../../http/inc/config.hpp"
 
 class Client
 {

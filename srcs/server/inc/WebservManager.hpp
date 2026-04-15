@@ -2,7 +2,7 @@
 #define WEBSERVMANAGER_HPP
 
 #include "Server.hpp"
-#include "../../http/config.hpp"
+#include "../../http/inc/config.hpp"
 #include <vector>
 
 /*

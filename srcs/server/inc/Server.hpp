@@ -3,7 +3,7 @@
 
 #include "../../Webserv.hpp"
 #include "server/inc/Client.hpp"
-#include "../../http/config.hpp"
+#include "../../http/inc/config.hpp"
 
 class ServerSocket : public Webserv
 {

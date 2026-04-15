@@ -1,5 +1,5 @@
 #include "server/inc/WebservManager.hpp"
-#include "http/config.hpp"
+#include "http/inc/config.hpp"
 
 int main(int argc, char **argv)
 {
