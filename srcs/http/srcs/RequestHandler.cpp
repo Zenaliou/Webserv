@@ -56,6 +56,9 @@ void RequestHandler::handleRequestError(Response &response, int errorCode)
 		case 405:
 			setErrorResponseTemp(response, errorCode, "Method Not Allowed", "405 Method Not Allowed\n");
 			break;
+		case 413:
+			setErrorResponseTemp(response, errorCode, "Payload Too Large", "413 Payload Too Large\n");
+			break;
 		case 505:
 			setErrorResponseTemp(response, errorCode, "HTTP Version Not Supported", "505 HTTP Version Not Supported\n");
 			break;

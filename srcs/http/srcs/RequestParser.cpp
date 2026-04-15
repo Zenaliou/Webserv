@@ -160,7 +160,6 @@ const Location &RequestParser::selectLocation(const Server &server, const std::s
 	throw std::runtime_error("No location configuration found");
 }
 
-
 std::string RequestParser::getHeaderValue(const std::string& name) const{
 	std::map<std::string, std::string>::const_iterator it = _headers.find(name);
 	if (it != _headers.end())
@@ -228,6 +227,11 @@ void RequestParser::parseRequest(std::string &buffer, const config &config, int 
 	if (hasHeader("content-length"))
 	{
 		_expectedBodyLength = getContentLength();
+		if (_expectedBodyLength > getLocation().getClientMaxBodySize())
+		{
+			_errorCode = 413;
+			return ;
+		}
 		if (buffer.size() - bodyStart < _expectedBodyLength)
 		{
 			_errorCode = 400;
