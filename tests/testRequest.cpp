@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../srcs/http/HttpRequest.hpp"
+#include "../srcs/http/RequestParser.hpp"
 
 int main() {
     // Exemple de requête HTTP complète
@@ -12,7 +12,7 @@ int main() {
         "\r\n"
         "hello=world!";
 
-    HttpRequest request;
+    RequestParser request;
 
     bool complete = request.parseRequest(rawRequest);
     if (!complete) {

@@ -1,11 +1,11 @@
-#ifndef HTTPREQUEST_HPP
-# define HTTPREQUEST_HPP
+#ifndef REQUESTPARSER_HPP
+# define REQUESTPARSER_HPP
 
 #include <string>
 #include <map>
 #include <sstream>
 
-class HttpRequest{
+class RequestParser{
 	private:
 	std::string _method;
 	std::string _uri;
@@ -18,8 +18,8 @@ class HttpRequest{
 	int _errorCode;
 
 	public:
-	HttpRequest();
-	~HttpRequest();
+	RequestParser();
+	~RequestParser();
 
 	const std::string &getMethod() const;
 	const std::string &getUri() const;

@@ -73,7 +73,7 @@ int Client::handleClient()
 		send(fd, buffer_out.c_str(), buffer_out.size(), 0);
 
 		buffer_in.clear();
-		request = HttpRequest(); // reset
+		request = RequestParser(); // reset
 		// else
 		// {
 		// 	Response response;
@@ -83,7 +83,7 @@ int Client::handleClient()
 		// 	send(fd, buffer_out.c_str(), buffer_out.size(), 0);
 			
 		// 	buffer_in.clear();
-		// 	request = HttpRequest();
+		// 	request = RequestParser();
 		// 	return (0);
 		// }
 		return (1); // keep connection alive

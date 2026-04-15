@@ -1,11 +1,11 @@
-#include "../inc/HttpRequest.hpp"
+#include "../inc/RequestParser.hpp"
 
 //exemple a quoi ressemble une requete
 //arrive par recv() en plusieurs morceaux par flux
 //donc faut attendre de tt recevoir
 //et le morceau peut meme depasser sur la prochaine requete
 
-//HttpRequest req;
+//RequestParser req;
 
 //req.method        // "GET"
 //req.uri           // "/index.html"
@@ -51,47 +51,47 @@
 //0\r\n
 //\r\n
 
-HttpRequest::HttpRequest() : _expectedBodyLength(0), _errorCode(0) {}
+RequestParser::RequestParser() : _expectedBodyLength(0), _errorCode(0) {}
 
-HttpRequest::~HttpRequest(){}
+RequestParser::~RequestParser(){}
 
-const std::string &HttpRequest::getMethod() const{
+const std::string &RequestParser::getMethod() const{
 	return (_method);
 }
-const std::string &HttpRequest::getUri() const{
+const std::string &RequestParser::getUri() const{
 	return (_uri);
 }
-const std::string &HttpRequest::getHttpVersion() const{
+const std::string &RequestParser::getHttpVersion() const{
 	return (_httpVersion);
 }
-const std::string &HttpRequest::getBody() const{
+const std::string &RequestParser::getBody() const{
 	return (_body);
 }
 
-int HttpRequest::getErrorCode() const{
+int RequestParser::getErrorCode() const{
 	return (_errorCode);
 }
 
-void HttpRequest::setMethod(const std::string &method){
+void RequestParser::setMethod(const std::string &method){
 	_method = method;
 }
 
-void HttpRequest::setUri(const std::string &uri){
+void RequestParser::setUri(const std::string &uri){
 	_uri = uri;
 }
 
-void HttpRequest::setBody(const std::string &body){
+void RequestParser::setBody(const std::string &body){
 	_body = body;
 }
 
-std::string HttpRequest::getHeaderValue(const std::string& name) const{
+std::string RequestParser::getHeaderValue(const std::string& name) const{
 	std::map<std::string, std::string>::const_iterator it = _headers.find(name);
 	if (it != _headers.end())
 		return it->second;
 	return "";
 }
 
-std::string HttpRequest::toLower(const std::string &str)const{
+std::string RequestParser::toLower(const std::string &str)const{
 	std::string lowerStr = str;
 	for (size_t i = 0; i < lowerStr.size(); i++)
 	{
@@ -100,7 +100,7 @@ std::string HttpRequest::toLower(const std::string &str)const{
 	return lowerStr;
 }
 
-size_t HttpRequest::getContentLength() const{
+size_t RequestParser::getContentLength() const{
 	std::string contentLength = getHeaderValue("content-length");
 	if (contentLength.empty())
 		return 0;
@@ -115,7 +115,7 @@ size_t HttpRequest::getContentLength() const{
 	return length;
 }
 
-void HttpRequest::parseRequest(std::string &buffer){
+void RequestParser::parseRequest(std::string &buffer){
 	size_t headerEnd = buffer.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)//npos = si on a rien trouver avec find et donc le header n'est pas complet
 	{
@@ -173,7 +173,7 @@ void HttpRequest::parseRequest(std::string &buffer){
 	}
 }
 
-bool HttpRequest::parseRequestLine(const std::string &line){
+bool RequestParser::parseRequestLine(const std::string &line){
 	std::istringstream stream(line);
 	if (!(stream >> _method >> _uri >> _httpVersion))
 	{
@@ -206,7 +206,7 @@ bool HttpRequest::parseRequestLine(const std::string &line){
 	return true;
 }
 
-void HttpRequest::parseHeader(const std::string &line){
+void RequestParser::parseHeader(const std::string &line){
 	size_t pos = line.find(':');
 	if (pos == std::string::npos)
 	{
@@ -231,21 +231,21 @@ void HttpRequest::parseHeader(const std::string &line){
 	_headers[toLower(name)] = value;
 }
 
-bool HttpRequest::hasHeader(const std::string &name) const{
+bool RequestParser::hasHeader(const std::string &name) const{
 	if (_headers.find(toLower(name)) != _headers.end())
 		return true;
 	else
 		return false;
 }
 
-bool HttpRequest::isChunked() const{
+bool RequestParser::isChunked() const{
 	std::string encoding = getHeaderValue("transfer-encoding");
 	if (encoding.find("chunked") != std::string::npos)
 		return true;
 	return false;
 }
 
-bool HttpRequest::parseChunkBody(const std::string &data, size_t bodyStart){
+bool RequestParser::parseChunkBody(const std::string &data, size_t bodyStart){
 // ! Recheck des return false(), il faut bien differencier une requete incomplete (attente) et une requete erronee (Bad request)
 // ? Peut-etre utiliser une variable _chunkBodyComplete
 	size_t pos = bodyStart;
