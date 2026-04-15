@@ -1,55 +1,55 @@
 #include "../inc/RequestParser.hpp"
 
-//exemple a quoi ressemble une requete
-//arrive par recv() en plusieurs morceaux par flux
-//donc faut attendre de tt recevoir
-//et le morceau peut meme depasser sur la prochaine requete
+/* exemple a quoi ressemble une requete
+arrive par recv() en plusieurs morceaux par flux
+donc faut attendre de tt recevoir
+et le morceau peut meme depasser sur la prochaine requete
 
-//RequestParser req;
+RequestParser req;
 
-//req.method        // "GET"
-//req.uri           // "/index.html"
-//req.version       // "HTTP/1.1"
-//req.headers["Host"] = "localhost"
-//req.body          // "hello=world"
+req.method        // "GET"
+req.uri           // "/index.html"
+req.version       // "HTTP/1.1"
+req.headers["Host"] = "localhost"
+req.body          // "hello=world"
 
-//recv() → buffer
-//  ↓
-//headers complets ?
-//  ↓
-//parser headers
-//  ↓
-//body requis ?
-//  ↓
-//body complet ?
-//  ↓
-//COMPLETE
+recv() → buffer
+ ↓
+headers complets ?
+ ↓
+parser headers
+ ↓
+body requis ?
+ ↓
+body complet ?
+ ↓
+COMPLETE
 
-//le header peut etre en minuscule ou en majuscule, ecriture non normaliser
-//donc on va tout mettre en minuscule comme ca plus simple pour les recherches
+le header peut etre en minuscule ou en majuscule, ecriture non normaliser
+donc on va tout mettre en minuscule comme ca plus simple pour les recherches
 
-//Request-Line\r\n
-//Header-1\r\n
-//Header-2\r\n
-//...
-//Header-N\r\n
-//\r\n
-//Body (optionnel)
+Request-Line\r\n
+Header-1\r\n
+Header-2\r\n
+...
+Header-N\r\n
+\r\n
+Body (optionnel)
 
-//si ya chunked transfer encoding, le body est divise en chunks
-//chaque chunk commence par sa taille en hexadecimale suivi de \r\n
-//puis les donnees du chunk suivi de \r\n
-//le dernier chunk a une taille de 0
-//exemple :
-//4\r\n
-//Wiki\r\n
-//5\r\n
-//pedia\r\n
-//E\r\n
-// in\r\n
-//chunks.\r\n
-//0\r\n
-//\r\n
+si ya chunked transfer encoding, le body est divise en chunks
+chaque chunk commence par sa taille en hexadecimale suivi de \r\n
+puis les donnees du chunk suivi de \r\n
+le dernier chunk a une taille de 0
+exemple :
+4\r\n
+Wiki\r\n
+5\r\n
+pedia\r\n
+E\r\n
+in\r\n
+chunks.\r\n
+0\r\n
+\r\n */
 
 RequestParser::RequestParser() : _expectedBodyLength(0), _errorCode(0) {}
 
@@ -95,7 +95,7 @@ std::string RequestParser::toLower(const std::string &str)const{
 	std::string lowerStr = str;
 	for (size_t i = 0; i < lowerStr.size(); i++)
 	{
-		lowerStr[i] = std::tolower(static_cast<unsigned char>(str[i]));//cast juste au cas ou c des caracteres accentuees
+		lowerStr[i] = std::tolower(static_cast<unsigned char>(str[i]));//cast pour caracteres accentues
 	}
 	return lowerStr;
 }
@@ -117,28 +117,23 @@ size_t RequestParser::getContentLength() const{
 
 void RequestParser::parseRequest(std::string &buffer){
 	size_t headerEnd = buffer.find("\r\n\r\n");
-	if (headerEnd == std::string::npos)//npos = si on a rien trouver avec find et donc le header n'est pas complet
+	if (headerEnd == std::string::npos)//npos = header pas complet
 	{
-		_errorCode = 400; //Bad Request
+		_errorCode = 400;
 		return ;
 	}
 	std::string headerPart = buffer.substr(0, headerEnd);
 	
-	//on traite seulement la partie header
 	std::istringstream stream(headerPart);
 	std::string line;
 	std::getline(stream, line);
 
-	//chaque ligne du header se termine par "\r\n"
-	//et getline va stocker dans line chaque ligne de stream jusqu'a "\n"
-	//donc on va supprimer le "\r" qui reste
+	//chaque ligne header se termine par "\r\n" - getline stocke jusqu'a "\n", on supprime "\r"
 	if (!line.empty() && line[line.size() -1] == '\r')
 		line.erase(line.size() -1);
-	//pour la 1ere ligne du header
 	if (!parseRequestLine(line))
 		return ;
-	
-	//pour les autres lignes du header
+
 	while (std::getline(stream, line))
 	{
 		if (!line.empty() && line[line.size() -1] == '\r')
@@ -147,7 +142,6 @@ void RequestParser::parseRequest(std::string &buffer){
 			parseHeader(line);
 	}
 
-	//la partie body
 	size_t bodyStart = headerEnd + 4; // + 4 pour "\r\n\r\n"
 	size_t totalSize = bodyStart;
 
@@ -177,30 +171,27 @@ bool RequestParser::parseRequestLine(const std::string &line){
 	std::istringstream stream(line);
 	if (!(stream >> _method >> _uri >> _httpVersion))
 	{
-		_errorCode = 400; //400 = bad request
+		_errorCode = 400;
 		return false;
 	}
 	
-	//verifie la methode
 	for (size_t i = 0; i < _method.size(); i++)
 		_method[i] = std::toupper(_method[i]);
 	if (_method != "GET" && _method != "POST" && _method != "DELETE")//! check avec les methodes autorisees pour differencier 405 (Not allowed) et 501 (Not implemented)
 	{
-		_errorCode = 405; //405 = method not allowed
+		_errorCode = 405;
 		return false;
 	}
 
-	//verifie l'uri
 	if (_uri.empty() || _uri[0] != '/')
 	{
 		_errorCode = 400;
 		return false;
 	}
 
-	//verifie la version http
-	if (_httpVersion != "HTTP/1.1") //je sais pas s'il faut rajouter HTTP/1.0
+	if (_httpVersion != "HTTP/1.1") // ? rajouter HTTP/1.0 ?
 	{
-		_errorCode = 505; // 505 = http version not supported
+		_errorCode = 505;
 		return false;
 	}
 	return true;
@@ -213,7 +204,7 @@ void RequestParser::parseHeader(const std::string &line){
 		return;
 	}
 	std::string name = line.substr(0, pos);
-	std::string value = line.substr(pos + 1); // on saute le ":", pas normer donc peut avoir ensuite plusieurs espaces ou rien
+	std::string value = line.substr(pos + 1); // on saute le ":"
 	size_t startValue = value.find_first_not_of(" \t");
 	if (startValue != std::string::npos)
 	{
@@ -226,8 +217,6 @@ void RequestParser::parseHeader(const std::string &line){
 		//+1 car find_last_not_of renvoie l'index et substr a besoin du nbre de caractere
 		//donc si index 4, nbre de caractere 5
 	}
-
-	//stock en minuscule pour faciliter la recherche
 	_headers[toLower(name)] = value;
 }
 
