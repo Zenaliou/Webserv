@@ -18,12 +18,11 @@
 		public:
 			RequestHandler();
 			~RequestHandler();
-			void handleRequest(const RequestParser &request, Response &response, const config &config, int port);
+			void handleRequest(const RequestParser &request, Response &response);
 			std::string getTimeStamp() const;
+
 		private:
 			MimeType	_mimetypes;
-			const Server &selectServer(const config &config, int port, const std::string &host);
-			const Location &selectLocation(const Server &server, const std::string &path);
 			void handleGet(const RequestParser &request, Response &response, const Location &location);
 			void handlePost(const RequestParser &request, Response &response, const Location &location);
 			void handleDelete(const RequestParser &request, Response &response, const Location &location);

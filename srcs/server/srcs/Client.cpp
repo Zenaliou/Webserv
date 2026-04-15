@@ -63,10 +63,10 @@ int Client::handleClient()
 		}
 		
 		// On a tout recu, parser et repondre
-		request.parseRequest(buffer_in);
+		request.parseRequest(buffer_in, *_config, _port);
 		Response reponse;
 		RequestHandler handler;
-		handler.handleRequest(request, reponse, *_config, _port);
+		handler.handleRequest(request, reponse);
 
 		// Send Response
 		buffer_out = reponse.generateResponse();

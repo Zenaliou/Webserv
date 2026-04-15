@@ -67,6 +67,12 @@ const std::string &RequestParser::getHttpVersion() const{
 const std::string &RequestParser::getBody() const{
 	return (_body);
 }
+const Server &RequestParser::getServer() const{
+	return (_server);
+}
+const Location &RequestParser::getLocation() const{
+	return (_location);
+}
 
 int RequestParser::getErrorCode() const{
 	return (_errorCode);
@@ -83,6 +89,77 @@ void RequestParser::setUri(const std::string &uri){
 void RequestParser::setBody(const std::string &body){
 	_body = body;
 }
+
+static bool	matchServerName(const Server &server, const std::string &host)
+{
+	const	std::vector<std::string> servers_name = server.getServerNames();
+	for (size_t i = 0; i < servers_name.size(); i++)
+	{
+		if (servers_name[i] == host)
+		{
+			std::cout << "server_name: " << servers_name[i] << std::endl;
+			return (true);
+		}
+	}
+	return (false);
+}
+
+const Server &RequestParser::selectServer(const config &config, int port, const std::string &host)
+{
+	std::cout << "host & port : " << host << " & " << port << std::endl;
+	const std::vector<Server> &servers = config.getServers();
+	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		if (it->getPort() == port && matchServerName(*it, host))
+		// if (it->getPort() == port && it->getHost() == host)
+			return *it;
+	}
+	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		if (it->getPort() == port)
+			return *it;
+	}
+	if (!servers.empty())
+		return servers[0];
+	throw std::runtime_error("No server configuration found");
+}
+
+const Location &RequestParser::selectLocation(const Server &server, const std::string &path)
+{
+	const std::vector<Location> &locations = server.locations;
+	size_t bestMatchIndex = 0;
+	size_t longestMatchLength = 0;
+	bool foundMatch = false;
+
+	// Chercher la location avec le chemin le plus precis correspondant au path
+	for (size_t i = 0; i < locations.size(); ++i)
+	{
+		const std::string &locPath = locations[i].getPath();
+
+		if (path == locations[i].getPath())
+			return (locations[i]);
+
+		else if (path.size() > locPath.size() && path.compare(0, locPath.size(), locPath) == 0 && path[locPath.size()] == '/')
+		{
+			if (locPath.length() > longestMatchLength)
+			{
+				longestMatchLength = locPath.length();
+				bestMatchIndex = i;
+				foundMatch = true;
+			}
+		}
+	}
+	if (foundMatch)
+		return locations[bestMatchIndex];
+
+	for (size_t i = 0; i < locations.size(); ++i)
+	{
+		if (locations[i].getPath() == "/")
+			return locations[i];
+	}
+	throw std::runtime_error("No location configuration found");
+}
+
 
 std::string RequestParser::getHeaderValue(const std::string& name) const{
 	std::map<std::string, std::string>::const_iterator it = _headers.find(name);
@@ -115,7 +192,7 @@ size_t RequestParser::getContentLength() const{
 	return length;
 }
 
-void RequestParser::parseRequest(std::string &buffer){
+void RequestParser::parseRequest(std::string &buffer, const config &config, int port){
 	size_t headerEnd = buffer.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)//npos = header pas complet
 	{
@@ -141,6 +218,9 @@ void RequestParser::parseRequest(std::string &buffer){
 		if (!line.empty())
 			parseHeader(line);
 	}
+
+	this->_server = selectServer(config, port, this->getHeaderValue("host"));
+	this->_location = selectLocation(this->getServer(), this->getUri());
 
 	size_t bodyStart = headerEnd + 4; // + 4 pour "\r\n\r\n"
 	size_t totalSize = bodyStart;

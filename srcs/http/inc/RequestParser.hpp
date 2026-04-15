@@ -1,6 +1,7 @@
 #ifndef REQUESTPARSER_HPP
 # define REQUESTPARSER_HPP
 
+#include "config.hpp"
 #include <string>
 #include <map>
 #include <sstream>
@@ -15,7 +16,13 @@ class RequestParser{
 	std::string _body;
 	size_t _expectedBodyLength;
 
+	Server _server;
+	Location _location;
+
 	int _errorCode;
+
+	const Server &selectServer(const config &config, int port, const std::string &host);
+	const Location &selectLocation(const Server &server, const std::string &path);
 
 	public:
 	RequestParser();
@@ -25,6 +32,8 @@ class RequestParser{
 	const std::string &getUri() const;
 	const std::string &getHttpVersion() const;
 	const std::string &getBody() const;
+	const Server &getServer() const;
+	const Location &getLocation() const;
 	int getErrorCode() const;
 
 	void setMethod(const std::string &method);
@@ -35,7 +44,7 @@ class RequestParser{
 
 	std::string toLower(const std::string &str) const;
 
-	void parseRequest(std::string &buffer);
+	void parseRequest(std::string &buffer, const config &config, int port);
 	bool parseRequestLine(const std::string &line);
 	void parseHeader(const std::string &line);
 

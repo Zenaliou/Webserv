@@ -16,77 +16,7 @@ std::string RequestHandler::getTimeStamp() const
 	return std::string(buf);
 }
 
-bool	matchServerName(const Server &server, const std::string &host)
-{
-	const	std::vector<std::string> servers_name = server.getServerNames();
-	for (size_t i = 0; i < servers_name.size(); i++)
-	{
-		if (servers_name[i] == host)
-		{
-			std::cout << "server_name: " << servers_name[i] << std::endl;
-			return (true);
-		}
-	}
-	return (false);
-}
-
-const Server &RequestHandler::selectServer(const config &config, int port, const std::string &host)
-{
-	std::cout << "host & port : " << host << " & " << port << std::endl;
-	const std::vector<Server> &servers = config.getServers();
-	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
-	{
-		if (it->getPort() == port && matchServerName(*it, host))
-		// if (it->getPort() == port && it->getHost() == host)
-			return *it;
-	}
-	for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
-	{
-		if (it->getPort() == port)
-			return *it;
-	}
-	if (!servers.empty())
-		return servers[0];
-	throw std::runtime_error("No server configuration found");
-}
-
-const Location &RequestHandler::selectLocation(const Server &server, const std::string &path)
-{
-	const std::vector<Location> &locations = server.locations;
-	size_t bestMatchIndex = 0;
-	size_t longestMatchLength = 0;
-	bool foundMatch = false;
-
-	// Chercher la location avec le chemin le plus precis correspondant au path
-	for (size_t i = 0; i < locations.size(); ++i)
-	{
-		const std::string &locPath = locations[i].getPath();
-
-		if (path == locations[i].getPath())
-			return (locations[i]);
-
-		else if (path.size() > locPath.size() && path.compare(0, locPath.size(), locPath) == 0 && path[locPath.size()] == '/')
-		{
-			if (locPath.length() > longestMatchLength)
-			{
-				longestMatchLength = locPath.length();
-				bestMatchIndex = i;
-				foundMatch = true;
-			}
-		}
-	}
-	if (foundMatch)
-		return locations[bestMatchIndex];
-
-	for (size_t i = 0; i < locations.size(); ++i)
-	{
-		if (locations[i].getPath() == "/")
-			return locations[i];
-	}
-	throw std::runtime_error("No location configuration found");
-}
-
-void RequestHandler::handleRequest(const RequestParser &request, Response &response, const config &config, int port)
+void RequestHandler::handleRequest(const RequestParser &request, Response &response)
 {
 	try
 	{
@@ -96,8 +26,7 @@ void RequestHandler::handleRequest(const RequestParser &request, Response &respo
 			handleRequestError(response, errorCode);
 			return ;
 		}
-		const Server &server = selectServer(config, port, request.getHeaderValue("host"));
-		const Location &location = selectLocation(server, request.getUri());
+		const Location &location = request.getLocation();
 		const std::string &method = request.getMethod();
 		if (method == "GET")
 			handleGet(request, response, location);
