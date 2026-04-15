@@ -2,7 +2,8 @@
 #define WEBSERV_HPP
 
 #include "Librairy.hpp"
-#include "server/inc/Pollfd.hpp"
+typedef struct pollfd Pollfd;
+// #include "server/inc/Pollfd.hpp"
 
 class Client; // forward declaration
 
