@@ -27,36 +27,65 @@ int Client::handleClient()
 		buffer[bytes_read] = '\0';  // null-terminate for string operations
 		buffer_in += buffer;         // accumulate data
 		
-		// Check if we received complete HTTP headers
-		if (request.parseRequest(buffer_in))
+		// Verifier si on a au moins les headers complets
+		size_t headerEnd = buffer_in.find("\r\n\r\n");
+		if (headerEnd == std::string::npos)
+			return (1); // headers incomplets, attendre plus de donnees
+		
+		// Extraire Content-Length du header si present
+		size_t contentLengthPos = buffer_in.find("Content-Length:");
+		if (contentLengthPos == std::string::npos)
+			contentLengthPos = buffer_in.find("content-length:");
+		
+		if (contentLengthPos != std::string::npos && contentLengthPos < headerEnd)
 		{
-			if (request.isComplete())
-			{
-				// Generate response
-				Response reponse;
-				RequestHandler handler;
-				handler.handleRequest(request, reponse, *_config, _port);
-
-				// Send Response
-				buffer_out = reponse.generateResponse();
-				send(fd, buffer_out.c_str(), buffer_out.size(), 0);
-
-				buffer_in.clear();
-				request = HttpRequest(); // reset
-			}
-		}
-		else
-		{
-			Response response;
-			response.setStatus(400, "Bad Request\n");
-			response.setBody("Error 400: Bad request");
-			buffer_out = response.generateResponse();
-			send(fd, buffer_out.c_str(), buffer_out.size(), 0);
+			// Trouver la valeur de Content-Length
+			size_t valueStart = buffer_in.find(":", contentLengthPos) + 1;
+			size_t valueEnd = buffer_in.find("\r\n", valueStart);
+			std::string contentLengthStr = buffer_in.substr(valueStart, valueEnd - valueStart);
 			
-			buffer_in.clear();
-			request = HttpRequest();
-			return (0);
+			// Supprimer les espaces
+			size_t firstNonSpace = contentLengthStr.find_first_not_of(" \t");
+			if (firstNonSpace != std::string::npos)
+				contentLengthStr = contentLengthStr.substr(firstNonSpace);
+			
+			// Convertir en nombre
+			size_t contentLength = 0;
+			std::istringstream iss(contentLengthStr);
+			iss >> contentLength;
+			
+			// Verifier si on a tout le body
+			size_t bodyStart = headerEnd + 4;
+			size_t bodyReceived = buffer_in.size() - bodyStart;
+			
+			if (bodyReceived < contentLength)
+				return (1); // body incomplet, attendre plus de donnees
 		}
+		
+		// On a tout recu, parser et repondre
+		request.parseRequest(buffer_in);
+		Response reponse;
+		RequestHandler handler;
+		handler.handleRequest(request, reponse, *_config, _port);
+
+		// Send Response
+		buffer_out = reponse.generateResponse();
+		send(fd, buffer_out.c_str(), buffer_out.size(), 0);
+
+		buffer_in.clear();
+		request = HttpRequest(); // reset
+		// else
+		// {
+		// 	Response response;
+		// 	response.setStatus(400, "Bad Request\n");
+		// 	response.setBody("Error 400: Bad request");
+		// 	buffer_out = response.generateResponse();
+		// 	send(fd, buffer_out.c_str(), buffer_out.size(), 0);
+			
+		// 	buffer_in.clear();
+		// 	request = HttpRequest();
+		// 	return (0);
+		// }
 		return (1); // keep connection alive
 	}
 
