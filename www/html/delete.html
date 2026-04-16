@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Delete</title>
+	<style>
+		body {
+			background: rgba(0, 21, 255, 0.557);
+			color: white;
+			font-family: Arial;
+			text-align: center;
+		}
+
+		button {
+			padding: 10px;
+			margin: 5px;
+			cursor: pointer;
+		}
+
+		#filesList div {
+			background: rgba(255, 255, 255, 0.1);
+			padding: 10px;
+			margin: 10px auto;
+			max-width: 500px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Delete</h1>
+	<button onclick="loadFiles()">Rafraichir</button>
+	<div id="filesList"></div>
+	<a href="/index.html">Home</a>
+
+	<script>
+		function loadFiles() {
+			fetch('/cgi-bin/list_uploads.py')
+				.then(r => r.json())
+				.then(data => {
+					let html = '';
+					data.files.forEach(f => {
+						html += `<div>${f.name} <button onclick="deleteFile('${f.name}')">X</button></div>`;
+					});
+					document.getElementById('filesList').innerHTML = html || 'Aucun fichier';
+				});
+		}
+
+		function deleteFile(name) {
+			fetch('/upload/' + name, { method: 'DELETE' })
+				.then(() => loadFiles());
+		}
+
+		loadFiles();
+	</script>
+</body>
+
+</html>
