@@ -24,13 +24,14 @@ int Client::handleClient()
 
 	if (bytes_read > 0)
 	{
-		buffer[bytes_read] = '\0';  // null-terminate for string operations
-		buffer_in += buffer;         // accumulate data
+		buffer_in.append(buffer, bytes_read); // accumulate binary-safe data
 		
 		// Verifier si on a au moins les headers complets
 		size_t headerEnd = buffer_in.find("\r\n\r\n");
 		if (headerEnd == std::string::npos)
+		{
 			return (1); // headers incomplets, attendre plus de donnees
+		}
 		
 		// Extraire Content-Length du header si present
 		size_t contentLengthPos = buffer_in.find("Content-Length:");
@@ -54,12 +55,13 @@ int Client::handleClient()
 			std::istringstream iss(contentLengthStr);
 			iss >> contentLength;
 			
-			// Verifier si on a tout le body
 			size_t bodyStart = headerEnd + 4;
 			size_t bodyReceived = buffer_in.size() - bodyStart;
 			
 			if (bodyReceived < contentLength)
+			{
 				return (1); // body incomplet, attendre plus de donnees
+			}
 		}
 		
 		// On a tout recu, parser et repondre
