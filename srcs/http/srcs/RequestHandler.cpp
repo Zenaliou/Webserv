@@ -151,16 +151,16 @@ static bool extractFileFromMultipart(const std::string &body, const std::string 
 		return (false);
 
 	size_t filenamePos = body.find("filename=\"", pos);
-	if (filenamePos == std::string::npos)
-		return (false);
-	filenamePos += 10;
-	size_t filenameEnd = body.find("\"", filenamePos);
-	if (filenameEnd == std::string::npos)
-		return (false);
-
-	filename = body.substr(filenamePos, filenameEnd - filenamePos);
-	if (filename.empty())
-		return (false);
+	if (filenamePos != std::string::npos)
+	{
+		filenamePos += 10;
+		size_t filenameEnd = body.find("\"", filenamePos);
+		if (filenameEnd == std::string::npos)
+			return (false);
+		filename = body.substr(filenamePos, filenameEnd - filenamePos);
+	}
+	else
+		filename = "";
 
 	size_t contentStart = body.find("\r\n\r\n", pos);
 	if (contentStart == std::string::npos)
@@ -239,8 +239,10 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 			std::string boundary = contentType.substr(boundaryPos + 9);
 			if (!boundary.empty() && boundary[0] == '"')
 				boundary = boundary.substr(1, boundary.length() - 2);
-			if (!extractFileFromMultipart(body, boundary, originalFilename, fileContent))
-				originalFilename = "";
+			extractFileFromMultipart(body, boundary, originalFilename, fileContent);
+		}
+		else
+		{
 		}
 
 		std::string filename = getTimeStamp();
@@ -252,8 +254,6 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 				uploadedFilePath += ext;
 		}
 
-		std::cout << uploadedFilePath << std::endl;
-
 		std::ofstream outFile(uploadedFilePath.c_str(), std::ios::out | std::ios::binary);
 		if (!outFile)
 		{
@@ -262,7 +262,7 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 			response.addHeader("Content-Type", "text/plain");
 			return;
 		}
-		outFile << body;
+		outFile << fileContent;
 		outFile.close();
 		response.setStatus(201, "Created");
 		response.setBody("File uploaded successfully\n");
