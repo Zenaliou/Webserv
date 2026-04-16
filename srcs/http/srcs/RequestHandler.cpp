@@ -229,31 +229,33 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 	if (!uploadPath.empty())
 	{
 		std::string originalFilename;
+		std::string fileExtension;
 		std::string fileContent = body;
+		std::string outFilename;
 
 		std::string contentType = request.getHeaderValue("content-type");
+		std::cout << "content type: " << contentType << std::endl;
 		size_t boundaryPos = contentType.find("boundary=");
 
-		if (boundaryPos != std::string::npos)
+		if (boundaryPos != std::string::npos) // en passant par html
 		{
+			std::cout << "BOUNDARY" << std::endl;
 			std::string boundary = contentType.substr(boundaryPos + 9);
 			if (!boundary.empty() && boundary[0] == '"')
 				boundary = boundary.substr(1, boundary.length() - 2);
 			extractFileFromMultipart(body, boundary, originalFilename, fileContent);
+			std::cout << "OGfilename: " << originalFilename << std::endl;
+			fileExtension = getFileExtension(originalFilename);
+			outFilename = originalFilename.substr(0, originalFilename.length() - fileExtension.length());
 		}
-		else
+		if (originalFilename.empty()) // && !fileExtension.empty())
 		{
+			outFilename = getTimeStamp();
 		}
+		std::string uploadedFilePath = uploadPath + "/" + outFilename;
+		uploadedFilePath += fileExtension;
 
-		std::string filename = getTimeStamp();
-		std::string uploadedFilePath = uploadPath + "/" + filename;
-		if (!originalFilename.empty())
-		{
-			std::string ext = getFileExtension(originalFilename);
-			if (!ext.empty())
-				uploadedFilePath += ext;
-		}
-
+		std::cout << uploadedFilePath << std::endl;
 		std::ofstream outFile(uploadedFilePath.c_str(), std::ios::out | std::ios::binary);
 		if (!outFile)
 		{
