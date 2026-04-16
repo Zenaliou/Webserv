@@ -24,8 +24,7 @@ int Client::handleClient()
 
 	if (bytes_read > 0)
 	{
-		buffer_in.append(buffer, bytes_read); // accumulate binary-safe data
-		
+		buffer_in.append(buffer, bytes_read);
 		// Verifier si on a au moins les headers complets
 		size_t headerEnd = buffer_in.find("\r\n\r\n");
 		if (headerEnd == std::string::npos)
