@@ -1,6 +1,8 @@
 #ifndef CONFIG_HPP
 # define CONFIG_HPP
 
+#define FAKE_UNLIMITED_SIZE 104857600
+
 #include <string>
 #include <vector>
 #include <map>
@@ -38,7 +40,7 @@ struct Server {
 	std::vector<std::string> allowedMethods;
 	std::vector<Location> locations;
 
-	Server() : host("0.0.0.0"), port(8080), clientMaxBodySize(1000000), autoindex(false){}
+	Server() : host("0.0.0.0"), port(8080), clientMaxBodySize(FAKE_UNLIMITED_SIZE), autoindex(false){}
 	//on initialise ces 4 valeurs car le reste vide par defaut
 
 	const std::string &getHost() const{return host;}

@@ -136,9 +136,12 @@ void config::parseServer(std::ifstream &file, Server& server, bool bracket){
 		{
 			try {
 				int size = stringToInt(tokens[1]);
-				if (size <= 0)
+				if (size < 0)
 					throw std::out_of_range("Invalid body size");
-				server.clientMaxBodySize = size;
+				else if (size == 0)
+					server.clientMaxBodySize = FAKE_UNLIMITED_SIZE;
+				else
+					server.clientMaxBodySize = size;
 			}
 			catch (const std::exception&){
 				std::cerr << "client_max_body_size_invalide\n";
@@ -253,10 +256,13 @@ void config::parseLocation(std::ifstream &file, Location &location, bool bracket
 		else if (directive == "client_max_body_size" && tokens.size() >= 2)
 		{
 			try {
-			int size = stringToInt(tokens[1]);
-			if (size <= 0)
-				throw std::out_of_range("Invalid body size");
-			location.clientMaxBodySize = size;
+				int size = stringToInt(tokens[1]);
+				if (size < 0)
+					throw std::out_of_range("Invalid body size");
+				else if (size == 0)
+					location.clientMaxBodySize = FAKE_UNLIMITED_SIZE;
+				else
+					location.clientMaxBodySize = size;
 			}
 			catch (const std::exception&){
 				std::cerr << "client_max_body_size_invalide\n";
