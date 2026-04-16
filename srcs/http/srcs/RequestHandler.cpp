@@ -16,6 +16,46 @@ std::string RequestHandler::getTimeStamp() const
 	return std::string(buf);
 }
 
+static bool fileExists(const std::string &path)
+{
+	struct stat buffer;
+	return (stat(path.c_str(), &buffer) == 0);
+}
+
+std::string RequestHandler::generateUniqueFilename(const std::string &path) const
+{
+	std::string dir;
+	std::string filename = path;
+
+	size_t slash = path.find_last_of('/');
+	if (slash != std::string::npos)
+	{
+		dir = path.substr(0, slash + 1);
+		filename = path.substr(slash + 1);
+	}
+
+	size_t dot = filename.find_last_of('.');
+	std::string stem = filename;
+	std::string extension;
+	if (dot != std::string::npos)
+	{
+		stem = filename.substr(0, dot);
+		extension = filename.substr(dot);
+	}
+
+	std::string uniquePath = path;
+	int i = 1;
+
+	while (fileExists(uniquePath))
+	{
+		std::stringstream ss;
+		ss << dir << stem << "(" << i << ")" << extension;
+		uniquePath = ss.str();
+		i++;
+	}
+	return (uniquePath);
+}
+
 void RequestHandler::handleRequest(const RequestParser &request, Response &response)
 {
 	try
@@ -248,12 +288,12 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 			fileExtension = getFileExtension(originalFilename);
 			outFilename = originalFilename.substr(0, originalFilename.length() - fileExtension.length());
 		}
-		if (originalFilename.empty()) // && !fileExtension.empty())
-		{
+		if (originalFilename.empty())
 			outFilename = getTimeStamp();
-		}
+
 		std::string uploadedFilePath = uploadPath + "/" + outFilename;
 		uploadedFilePath += fileExtension;
+		uploadedFilePath = generateUniqueFilename(uploadedFilePath);
 
 		std::cout << uploadedFilePath << std::endl;
 		std::ofstream outFile(uploadedFilePath.c_str(), std::ios::out | std::ios::binary);

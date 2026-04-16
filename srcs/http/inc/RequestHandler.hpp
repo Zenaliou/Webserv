@@ -20,6 +20,7 @@
 			~RequestHandler();
 			void handleRequest(const RequestParser &request, Response &response);
 			std::string getTimeStamp() const;
+			std::string generateUniqueFilename(const std::string &path) const;
 
 		private:
 			MimeType	_mimetypes;
