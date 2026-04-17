@@ -56,6 +56,29 @@ std::string RequestHandler::generateUniqueFilename(const std::string &path) cons
 	return (uniquePath);
 }
 
+static t_method is_method(const std::string &method)
+{
+	if (method == "GET")
+		return (GET);
+	else if (method == "POST")
+		return (POST);
+	else if (method == "DELETE")
+		return (DELETE);
+	else
+		return (UNKNOWN);
+}
+
+static bool method_allowed(const std::string &method, const Location &location)
+{
+	const std::vector<std::string> &allowedMethod = location.getAllowedMethods();
+	for (std::vector<std::string>::const_iterator it = allowedMethod.begin(); it != allowedMethod.end(); it++)
+	{
+		if (method == *it)
+			return (true);
+	}
+	return (false);
+}
+
 void RequestHandler::handleRequest(const RequestParser &request, Response &response)
 {
 	try
@@ -68,17 +91,38 @@ void RequestHandler::handleRequest(const RequestParser &request, Response &respo
 		}
 		const Location &location = request.getLocation();
 		const std::string &method = request.getMethod();
-		if (method == "GET")
-			handleGet(request, response, location);
-		else if (method == "POST")
-			handlePost(request, response, location);
-		else if (method == "DELETE")
-			handleDelete(request, response, location);
-		else
+		t_method selectMethod = is_method(method);
+
+		if (selectMethod == UNKNOWN)
+		{
+			response.setStatus(501, "Not Implemented");
+			response.setBody("501 Not Implemented\n");
+			return ;
+		}
+		else if (!method_allowed(method, location))
 		{
 			response.setStatus(405, "Method Not Allowed");
 			response.setBody("405 Method Not Allowed\n");
 			response.addHeader("Allow", "GET, POST, DELETE");
+			return ;
+		}
+
+		switch (selectMethod)
+		{
+			case GET:
+				handleGet(request, response, location);
+				break;
+			case POST:
+				handlePost(request, response, location);
+				break;
+			case DELETE:
+				handleDelete(request, response, location);
+				break;
+			default:
+				response.setStatus(501, "Not Implemented");
+				response.setBody("501 Not Implemented\n");
+				response.addHeader("Allow", "GET, POST, DELETE");
+				break;
 		}
 	}
 	catch (const std::exception &e)

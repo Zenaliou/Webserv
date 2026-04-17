@@ -261,11 +261,6 @@ bool RequestParser::parseRequestLine(const std::string &line){
 	
 	for (size_t i = 0; i < _method.size(); i++)
 		_method[i] = std::toupper(_method[i]);
-	if (_method != "GET" && _method != "POST" && _method != "DELETE")//! check avec les methodes autorisees pour differencier 405 (Not allowed) et 501 (Not implemented)
-	{
-		_errorCode = 405;
-		return false;
-	}
 
 	if (_uri.empty() || _uri[0] != '/')
 	{
