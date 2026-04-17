@@ -246,6 +246,7 @@ void config::parseLocation(std::ifstream &file, Location &location, bool bracket
 		}
 		else if (directive == "allowed_methods" && tokens.size() >= 2)
 		{
+			location.allowedMethods.clear();
 			for (size_t i = 1; i < tokens.size(); i++)
 			{
 				location.allowedMethods.push_back(tokens[i]);

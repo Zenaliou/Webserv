@@ -163,13 +163,11 @@ void RequestHandler::handleGet(const RequestParser &request, Response &response,
 
 	std::string fullPath = root + path;
 
-	// Extraire l'extension
 	size_t dotPos = fullPath.find_last_of('.');
 	std::string extension;
 	if (dotPos != std::string::npos)
 		extension = fullPath.substr(dotPos);
 
-	// Vérifier si c'est un script CGI
 	if (cgiExtensions.find(extension) != cgiExtensions.end())
 	{
 		CGI cgi;
@@ -184,7 +182,6 @@ void RequestHandler::handleGet(const RequestParser &request, Response &response,
 		return;
 	}
 
-	// Vérifier si le fichier existe
 	struct stat fileStat;
 	if (stat(fullPath.c_str(), &fileStat) != 0)
 	{
@@ -206,7 +203,6 @@ void RequestHandler::handleGet(const RequestParser &request, Response &response,
 		fullPath = indexPath;
 	}
 
-	// Lire le fichier
 	std::ifstream file(fullPath.c_str(), std::ios::in | std::ios::binary);
 	if (!file)
 	{
@@ -223,7 +219,6 @@ void RequestHandler::handleGet(const RequestParser &request, Response &response,
 	response.setStatus(200, "OK");
 	response.setBody(buffer.str());
 
-	// Déterminer le MIME type
 	std::string mime = _mimetypes.getMimeType(extension);
 	response.addHeader("Content-Type", mime);
 }
@@ -355,8 +350,8 @@ void RequestHandler::handlePost(const RequestParser &request, Response &response
 		response.addHeader("Content-Type", "text/plain");
 		return;
 	}
-	response.setStatus(405, "Method Not Allowed");
-	response.setBody("405 POST not allowed for this location\n");
+	response.setStatus(500, "Internal server error");
+	response.setBody("500 No upload path\n");
 	response.addHeader("Content-Type", "text/plain");
 }
 
